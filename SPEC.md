@@ -64,6 +64,14 @@ In addition to the terms defined in OKF §2, this profile uses:
   no external document (receipt, invoice) exists to serve as one, for
   example when correcting an earlier bookkeeping error or recording a
   depreciation entry at year-end close.
+- **Leverantör (Supplier)** — the counterparty a company purchases
+  goods or services from; the "motpart" a `Verification`'s
+  `counterparty` field (§4.1.1) names in free text when the
+  affärshändelse is a purchase.
+- **Leverantörsreskontra** — a sidoordnad bokföring (subsidiary
+  ledger) recording, per leverantör, the invoices received and amounts
+  owed (BFL 5 kap. 4 §); the accounting purpose this profile's
+  `Supplier` concept type (§4.3) serves.
 
 ---
 
@@ -362,7 +370,133 @@ utgående balans — 2026-08-31 in this example — for every account.
 
 ---
 
-## 5. Conformance
+### 4.3 `Supplier`
+
+A `Supplier` concept represents exactly one leverantör: a recurring
+motpart in verifikationer, whose identifying and payment details would
+otherwise have to be repeated in every `Verification` that names them
+as `counterparty`. BFL requires a bookkeeping system with many
+transactions against the same counterparty to maintain a sidoordnad
+bokföring — a leverantörsreskontra — through which those transactions
+can be identified and reconciled (BFL 5 kap. 4 §). A `Supplier`
+concept is this profile's representation of one entry in that
+leverantörsreskontra.
+
+Concept ID convention: place suppliers under a `suppliers/`
+subdirectory, one file per leverantör, e.g.
+`suppliers/kontorsvaruhuset-ab.md`. Producers SHOULD use a stable,
+recognizable slug so a `Verification`'s free-text `counterparty`
+(§4.1.1) can be matched to the corresponding `Supplier` concept
+without ambiguity.
+
+#### 4.3.1 Frontmatter
+
+```yaml
+---
+type: Supplier                     # REQUIRED (OKF §4.1)
+company_number: <string>           # REQUIRED when applicable
+vat_number: <string>               # REQUIRED when applicable
+bankgiro: [<string>, …]            # REQUIRED when applicable
+plusgiro: [<string>, …]            # REQUIRED when applicable
+bank_account: [<string>, …]        # REQUIRED when applicable
+title: <Optional display name>     # Recommended (OKF §4.1)
+description: <Optional one-line summary>  # Recommended (OKF §4.1)
+address: <string>                  # Recommended
+country: <ISO 3166-1 alpha-2>      # Recommended
+f_tax_status: approved | not_approved  # Recommended
+payment_terms: <string>            # Recommended
+reference_person: <string>         # Recommended
+tags: [<tag>, …]                   # Optional (OKF §4.1)
+timestamp: <ISO 8601 datetime>     # Recommended (OKF §4.1)
+---
+```
+
+The generic OKF fields (`type`, `title`, `description`, `tags`,
+`timestamp`) keep their OKF §4.1 meaning.
+
+**Required when applicable**, per BFL 5 kap. 4 §, 6–7 §§ and
+Mervärdesskattelagen (ML)'s invoice-content rules:
+
+- `company_number` — the organisationsnummer of a legal person or the
+  personnummer of a sole trader (enskild firma), identifying the
+  leverantör as the "motpart" a `Verification`'s `counterparty` field
+  (§4.1.1) names in free text. A foreign supplier with no Swedish-style
+  registration number MAY omit this field and rely on `vat_number`
+  instead.
+- `vat_number` — the momsregistreringsnummer, required for a supplier
+  registered for VAT, in particular for cross-border/reverse-charge
+  purchases where ML requires both parties' VAT numbers to be
+  recorded. Omit for a supplier with no VAT registration, e.g. a
+  private individual.
+- `bankgiro` / `plusgiro` / `bank_account` — the leverantör's
+  payment-routing numbers. At least one of these three fields MUST be
+  present whenever the supplier is paid electronically, so that
+  amounts recorded in the leverantörsreskontra can actually be settled
+  and reconciled against bank transactions. Each field is a list
+  because a supplier can hold several bankgiro, plusgiro, or bank
+  accounts. Omit all three only when there is no ongoing payment
+  relationship with the supplier.
+
+**Recommended**:
+
+- `address` — the leverantör's postal address, for correspondence and
+  archival.
+- `country` — an ISO 3166-1 alpha-2 country code, useful to identify a
+  foreign supplier identified via `vat_number` rather than
+  `company_number`.
+- `f_tax_status` — whether the supplier has been granted F-skatt
+  (`approved`) or not (`not_approved`). Relevant for suppliers of
+  tjänster (services): if a service supplier is not approved for
+  F-skatt, Skatteförfarandelagen may require the payer to withhold
+  preliminary tax on payment. Not required because it is inapplicable
+  to most suppliers of goods.
+- `payment_terms` — the betalningsvillkor agreed with the supplier,
+  e.g. `"30 dagar netto"`.
+- `reference_person` — a named contact person at the supplier (vår
+  referens/er referens).
+
+#### 4.3.2 Conventional body sections
+
+In addition to the OKF §4.2 conventional headings, `Supplier` concepts
+SHOULD use:
+
+| Heading           | Purpose                                                                  |
+| ------------------ | ------------------------------------------------------------------------- |
+| `# Verifications`  | Links to verifications where this supplier is the `counterparty`.       |
+| `# Citations`      | As OKF §8 — the legal or documentary basis, if not obvious from context. |
+
+#### 4.3.3 Example
+
+```markdown
+---
+type: Supplier
+company_number: "556677-8899"
+vat_number: "SE556677889901"
+bankgiro: ["123-4567"]
+title: Kontorsvaruhuset AB
+address: Lagergatan 4, 123 45 Storstad
+country: SE
+f_tax_status: approved
+payment_terms: 30 dagar netto
+timestamp: 2026-01-15T10:00:00Z
+---
+
+[Kontorsvaruhuset AB](https://kontorsvaruhuset.example/), leverantör
+av kontorsmaterial.
+
+# Verifications
+
+- [verifications/2026/000123](/verifications/2026/000123.md)
+
+# Citations
+
+[1] Bokföringslagen (BFL) 5 kap. 4 §, 6–7 §§
+[2] Mervärdesskattelagen (ML) — fakturans innehåll
+```
+
+---
+
+## 6. Conformance
 
 A bundle is conformant with this profile if it satisfies OKF v0.1
 conformance (OKF §9) **and**, additionally:
@@ -376,18 +510,23 @@ conformance (OKF §9) **and**, additionally:
   whenever `status` is `closed`; includes an `# Opening Balances` body
   section (§4.2.2); and includes a `# Closing Balances` body section
   (§4.2.2) whenever `status` is `closed`.
+- every concept with `type: Supplier` has `company_number` and
+  `vat_number` whenever the underlying leverantör in fact has such a
+  number, and at least one of `bankgiro`, `plusgiro`, or
+  `bank_account` whenever the supplier is paid electronically (§4.3.1).
 
 As with OKF itself (OKF §9), consumers MUST NOT reject a
-`Verification` or `Fiscal Year` concept over missing "Recommended"
-fields — only over missing "Required" (or applicable "Required when
-applicable") fields.
+`Verification`, `Fiscal Year`, or `Supplier` concept over missing
+"Recommended" fields — only over missing "Required" (or applicable
+"Required when applicable") fields.
 
 ---
 
-## 6. Citations
+## 7. Citations
 
-The requirements in §4.1 are drawn directly from the Bokföringslag
-(BFL, SFS 1999:1078):
+The requirements in §4.1 and §4.3 are drawn directly from the
+Bokföringslag (BFL, SFS 1999:1078) and, for `Supplier`'s VAT number,
+the Mervärdesskattelag (ML, SFS 2023:200):
 
 [1] BFL 1 kap. 2 §, 6–7 p. — definitions of *affärshändelse* and
     *verifikation*.
@@ -397,3 +536,7 @@ The requirements in §4.1 are drawn directly from the Bokföringslag
     räkenskapsår, and ändring av räkenskapsår.
 [4] BFL 6 kap. 1 § — the duty to close the löpande bokföring for each
     räkenskapsår with an årsredovisning or ett årsbokslut.
+[5] BFL 5 kap. 4 § — sidoordnad bokföring, e.g. leverantörsreskontra,
+    for counterparties with many transactions.
+[6] ML — invoice-content rules requiring both parties'
+    momsregistreringsnummer on cross-border/reverse-charge purchases.
