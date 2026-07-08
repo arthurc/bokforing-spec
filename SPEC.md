@@ -79,6 +79,20 @@ In addition to the terms defined in OKF §2, this profile uses:
   `Supplier` (§4.3) and `Supplier Invoice` (§4.4) concept types jointly
   serve — `Supplier` holds the leverantör's master data, `Supplier
   Invoice` holds each invoice and amount owed.
+- **Kund (Customer)** — the counterparty a company sells goods or
+  services to; the "motpart" a `Verification`'s `counterparty` field
+  (§4.1.1) names in free text when the affärshändelse is a sale.
+- **Kundfaktura (Customer Invoice)** — an invoice issued to a kund for
+  goods or services sold; the document a `Verification`'s
+  `supporting_documents` (§4.1.1) references when the affärshändelse is
+  a sale, and the accounting purpose this profile's `Customer Invoice`
+  concept type (§4.6) serves.
+- **Kundreskontra** — a sidoordnad bokföring (subsidiary ledger)
+  recording, per kund, the invoices issued and amounts owed to the
+  company (BFL 5 kap. 4 §); the accounting purpose this profile's
+  `Customer` (§4.5) and `Customer Invoice` (§4.6) concept types jointly
+  serve — `Customer` holds the kund's master data, `Customer Invoice`
+  holds each invoice and amount owed.
 
 ---
 
@@ -660,6 +674,292 @@ från fakturadatum.
 
 ---
 
+### 4.5 `Customer`
+
+A `Customer` concept represents exactly one kund: a recurring motpart
+in verifikationer, whose identifying and payment details would
+otherwise have to be repeated in every `Verification` that names them
+as `counterparty`. BFL requires a bookkeeping system with many
+transactions against the same counterparty to maintain a sidoordnad
+bokföring — a kundreskontra — through which those transactions can be
+identified and reconciled (BFL 5 kap. 4 §). A `Customer` concept is
+this profile's representation of the kund's master-data entry in that
+kundreskontra; the individual invoices tracked within it are
+represented by `Customer Invoice` concepts (§4.6).
+
+Concept ID convention: place customers under a `customers/`
+subdirectory, one file per kund, e.g. `customers/foretag-ab.md`.
+Producers SHOULD use a stable, recognizable slug so a `Verification`'s
+free-text `counterparty` (§4.1.1) can be matched to the corresponding
+`Customer` concept without ambiguity.
+
+#### 4.5.1 Frontmatter
+
+```yaml
+---
+type: Customer                     # REQUIRED (OKF §4.1)
+title: <Display name>              # REQUIRED
+customer_number: <string>          # REQUIRED when applicable
+company_number: <string>           # REQUIRED when applicable
+vat_number: <string>               # REQUIRED when applicable
+description: <Optional one-line summary>  # Recommended (OKF §4.1)
+address: <string>                  # Recommended
+country: <ISO 3166-1 alpha-2>      # Recommended
+payment_terms: <string>            # Recommended
+reference_person: <string>         # Recommended
+tags: [<tag>, …]                   # Optional (OKF §4.1)
+timestamp: <ISO 8601 datetime>     # Recommended (OKF §4.1)
+---
+```
+
+The generic OKF fields (`type`, `description`, `tags`, `timestamp`)
+keep their OKF §4.1 meaning, with one change: `title` is **required**
+for `Customer`, not merely recommended — promoted from OKF's generic
+"Recommended" (OKF §4.1) because a kundreskontra entry without a name
+does not identify the kund it belongs to.
+
+**Required when applicable**, per BFL 5 kap. 4 §, 6–7 §§ and BFNAR
+2013:2's commentary on identifying a motpart:
+
+- `customer_number` — the kundnummer assigned to the kund, e.g. in
+  partihandel. BFNAR 2013:2's commentary on BFL 5 kap. 6 § notes that
+  "[u]ppgiften om motpart kan vara ett kundnummer, om det finns
+  fullständiga uppgifter om kunden i kundregistret" — a kundnummer is
+  an accepted way to identify the motpart named in a `Verification`
+  (§4.1.1), provided the full customer details are recorded here.
+- `company_number` — the organisationsnummer of a legal person, or the
+  personnummer of a sole trader or private individual, identifying the
+  kund as the "motpart" a `Verification`'s `counterparty` field
+  (§4.1.1) names in free text. A foreign or anonymous-at-point-of-sale
+  customer MAY omit this field and rely on `vat_number` or
+  `customer_number` instead.
+- `vat_number` — the momsregistreringsnummer, required for a customer
+  registered for VAT, in particular for cross-border/reverse-charge
+  sales where ML requires both parties' VAT numbers to be recorded.
+  Omit for a customer with no VAT registration, e.g. a private
+  individual.
+
+At least one of `customer_number`, `company_number`, or `vat_number`
+SHOULD be present: BFNAR 2013:2's commentary on BFL 5 kap. 6 § accepts
+"namn och adress," "namn och organisationsnummer," "registreringsnummer
+för mervärdesskatt," or a kundnummer as sufficient to identify a
+motpart — a `Customer` concept with none of these and no `address`
+does not meet that bar.
+
+**Recommended**:
+
+- `address` — the kund's postal address, for correspondence and
+  archival.
+- `country` — an ISO 3166-1 alpha-2 country code, useful to identify a
+  foreign customer identified via `vat_number` rather than
+  `company_number`.
+- `payment_terms` — the betalningsvillkor agreed with the customer,
+  e.g. `"30 dagar netto"`.
+- `reference_person` — a named contact person at the customer (vår
+  referens/er referens).
+
+#### 4.5.2 Conventional body sections
+
+In addition to the OKF §4.2 conventional headings, `Customer` concepts
+SHOULD use:
+
+| Heading               | Purpose                                                                  |
+| ---------------------- | ------------------------------------------------------------------------- |
+| `# Verifications`      | Links to verifications where this customer is the `counterparty`.       |
+| `# Customer Invoices`  | Links to `Customer Invoice` concepts (§4.6) issued to this customer.    |
+| `# Citations`          | As OKF §8 — the legal or documentary basis, if not obvious from context. |
+
+#### 4.5.3 Example
+
+```markdown
+---
+type: Customer
+customer_number: "K-4471"
+company_number: "556122-3344"
+vat_number: "SE556122334401"
+title: Företag AB
+address: Kundgatan 9, 111 22 Storstad
+country: SE
+payment_terms: 30 dagar netto
+timestamp: 2026-02-01T10:00:00Z
+---
+
+[Företag AB](https://foretag.example/), återkommande kund som köper
+konsulttjänster.
+
+# Verifications
+
+- [verifications/2026/000145](/verifications/2026/000145.md)
+
+# Customer Invoices
+
+- [customer-invoices/2026/2026-0456](/customer-invoices/2026/2026-0456.md)
+
+# Citations
+
+[1] Bokföringslagen (BFL) 5 kap. 4 §, 6–7 §§
+[2] Mervärdesskattelagen (ML) — fakturans innehåll
+[3] BFNAR 2013:2 — kommentar till 5 kap. 6 § BFL om identifiering av
+    motpart
+```
+
+---
+
+### 4.6 `Customer Invoice`
+
+A `Customer Invoice` concept represents exactly one kundfaktura: a
+specific invoice issued to a `Customer` (§4.5), stating what is owed,
+by whom, and by when. It sits between `Customer` and `Verification`:
+the `Customer` is *who* the counterparty is, the `Customer Invoice` is
+*what was invoiced and when it falls due*, and the `Verification`
+(§4.1) is *how the resulting affärshändelse was booked* — the
+kundfaktura is the verifikation's underlying document
+(bokföringsunderlag), not the verifikation itself.
+
+Unlike `Supplier Invoice` (§4.4), a `Customer Invoice` has only one
+identification chain: the issuing company assigns `invoice_number`
+itself, from a sequential series, at the moment of issue. A `Supplier
+Invoice` needs a separate `sequence_number` and `received_date`
+because an *incoming* invoice arrives already numbered by the
+supplier, under a scheme the receiving company does not control
+("Företaget använder olika identifieringstecken för samma faktura i
+leverantörsreskontran respektive bokföringen" — BFNAR 2013:2), and its
+receipt, not its printed date, governs when it must be booked. An
+outgoing kundfaktura has no such second chain and no "received" event:
+the issuing company's own `invoice_number` identifies it in both the
+kundreskontra and the bokföring from the start, and there is
+consequently no `Customer Invoice` equivalent of `sequence_number` or
+`received_date`.
+
+Concept ID convention: place customer invoices under a
+`customer-invoices/` subdirectory, one file per kundfaktura, e.g.
+`customer-invoices/2026/2026-0456.md`. Producers SHOULD name the file
+after `invoice_number` so the corresponding kundfaktura can be located
+without opening it.
+
+#### 4.6.1 Frontmatter
+
+```yaml
+---
+type: Customer Invoice              # REQUIRED (OKF §4.1)
+customer: <Concept ID>              # REQUIRED
+invoice_number: <string>            # REQUIRED
+invoice_date: <ISO 8601 date>       # REQUIRED
+due_date: <ISO 8601 date>           # REQUIRED
+amount: <decimal> <ISO 4217 code>   # REQUIRED
+payment_status: unpaid | paid       # REQUIRED
+vat_amount: <decimal> <ISO 4217 code>  # REQUIRED when applicable
+payment_date: <ISO 8601 date>       # REQUIRED when applicable
+currency: <ISO 4217 code>           # REQUIRED when applicable
+exchange_rate: <decimal>            # REQUIRED when applicable
+verification: <Concept ID>          # Recommended
+payment_terms: <string>             # Recommended
+title: <Optional display name>      # Recommended (OKF §4.1)
+description: <Optional one-line summary>  # Recommended (OKF §4.1)
+resource: <Optional URI to source document>  # Recommended (OKF §4.1)
+tags: [<tag>, …]                    # Optional (OKF §4.1)
+timestamp: <ISO 8601 datetime>      # Recommended (OKF §4.1)
+---
+```
+
+The generic OKF fields (`type`, `title`, `description`, `resource`,
+`tags`, `timestamp`) keep their OKF §4.1 meaning.
+
+**Required**, per BFL 5 kap. 4 § (kundreskontra) and ML's
+invoice-content rules:
+
+- `customer` — the Concept ID of the `Customer` (§4.5) the invoice was
+  issued to, rather than repeating their identifying details in free
+  text.
+- `invoice_number` — the fakturanummer the issuing company assigns,
+  drawn from a sequential series (ML requires a faktura's löpnummer to
+  make it uniquely identifiable within one or more series). Unlike
+  `Supplier Invoice.invoice_number` (§4.4.1), this is the company's own
+  number, not a counterparty's.
+- `invoice_date` — fakturadatum: the date printed on the invoice, and —
+  since the company controls issuance — the date that governs when the
+  invoice must be booked (contrast `Supplier Invoice`, where
+  `received_date` governs instead).
+- `due_date` — förfallodatum: the date payment is due, without which
+  the reskontra cannot flag an invoice as overdue.
+- `amount` — the total sum owed, including currency, mirroring
+  `Verification.amount` (§4.1.1).
+- `payment_status` — whether the invoice is still owed (`unpaid`) or
+  has been settled (`paid`). A kundreskontra exists specifically to
+  track this per invoice, so that an already-paid invoice is not
+  chased for payment again.
+
+**Required when applicable**:
+
+- `vat_amount` — the invoice's mervärdesskatt content, when the sale
+  carries Swedish VAT.
+- `payment_date` — the actual date payment was received. Required once
+  `payment_status` is `paid`, mirroring `Supplier Invoice.payment_date`
+  (§4.4.1).
+- `currency` / `exchange_rate` — for an invoice issued in a foreign
+  currency: the original currency and the exchange rate used at
+  booking, since the rate at payment may differ and produce a
+  valutakursvinst or -förlust (ÅRL 4 kap. 13 §).
+
+**Recommended**:
+
+- `verification` — the Concept ID of the `Verification` (§4.1) that
+  books this invoice.
+- `payment_terms` — the betalningsvillkor stated on this invoice, when
+  they differ from the `Customer`'s default `payment_terms` (§4.5.1).
+
+#### 4.6.2 Conventional body sections
+
+In addition to the OKF §4.2 conventional headings, `Customer Invoice`
+concepts SHOULD use:
+
+| Heading         | Purpose                                                                  |
+| ---------------- | ------------------------------------------------------------------------- |
+| `# Line Items`  | The fakturarader: goods/services invoiced, quantities, and prices.       |
+| `# Payment`     | The invoice's payment/reskontra status, to track outstanding amounts.   |
+| `# Citations`   | As OKF §8 — the legal or documentary basis, if not obvious from context. |
+
+#### 4.6.3 Example
+
+```markdown
+---
+type: Customer Invoice
+customer: "customers/foretag-ab"
+invoice_number: "2026-0456"
+invoice_date: 2026-06-15
+due_date: 2026-07-15
+amount: 25000.00 SEK
+vat_amount: 5000.00 SEK
+payment_status: unpaid
+verification: "verifications/2026/000145"
+payment_terms: 30 dagar netto
+title: Kundfaktura 2026-0456 — Företag AB
+timestamp: 2026-06-15T09:00:00Z
+---
+
+Faktura till [Företag AB](/customers/foretag-ab.md) avseende
+konsulttjänster utförda i maj 2026. Bokförd som
+[verifications/2026/000145](/verifications/2026/000145.md).
+
+# Line Items
+
+| Item                       | Qty | Unit Price | Amount   |
+| --------------------------- | ---: | ---------: | -------: |
+| Konsulttjänster, maj 2026   |    1 |   20000.00 | 20000.00 |
+
+# Payment
+
+Ej betald. Förfaller 2026-07-15; betalningsvillkor 30 dagar netto från
+fakturadatum.
+
+# Citations
+
+[1] Bokföringslagen (BFL) 5 kap. 4 §
+[2] Mervärdesskattelagen (ML) — fakturans innehåll
+```
+
+---
+
 ## 6. Conformance
 
 A bundle is conformant with this profile if it satisfies OKF v0.1
@@ -683,23 +983,34 @@ conformance (OKF §9) **and**, additionally:
   Swedish VAT, `payment_date` whenever `payment_status` is `paid`, and
   `currency`/`exchange_rate` whenever the invoice is issued in a
   foreign currency (§4.4.1).
+- every concept with `type: Customer` has `title`, plus
+  `customer_number`, `company_number`, and `vat_number` whenever the
+  underlying kund in fact has such an identifier (§4.5.1).
+- every concept with `type: Customer Invoice` has all fields listed as
+  "Required" in §4.6.1, plus `vat_amount` whenever the sale carries
+  Swedish VAT, `payment_date` whenever `payment_status` is `paid`, and
+  `currency`/`exchange_rate` whenever the invoice is issued in a
+  foreign currency (§4.6.1).
 
 As with OKF itself (OKF §9), consumers MUST NOT reject a
-`Verification`, `Fiscal Year`, `Supplier`, or `Supplier Invoice`
-concept over missing "Recommended" fields — only over missing
-"Required" (or applicable "Required when applicable") fields.
+`Verification`, `Fiscal Year`, `Supplier`, `Supplier Invoice`,
+`Customer`, or `Customer Invoice` concept over missing "Recommended"
+fields — only over missing "Required" (or applicable "Required when
+applicable") fields.
 
 ---
 
 ## 7. Citations
 
-The requirements in §4.1, §4.3, and §4.4 are drawn directly from the
-Bokföringslag (BFL, SFS 1999:1078); for `Supplier`'s VAT number and
-`Supplier Invoice`'s invoice-content fields, the Mervärdesskattelag
-(ML, SFS 2023:200); for `Supplier Invoice`'s foreign-currency fields,
+The requirements in §4.1, §4.3, §4.4, §4.5, and §4.6 are drawn directly
+from the Bokföringslag (BFL, SFS 1999:1078); for `Supplier`'s and
+`Customer`'s VAT numbers and `Supplier Invoice`'s/`Customer Invoice`'s
+invoice-content fields, the Mervärdesskattelag (ML, SFS 2023:200); for
+`Supplier Invoice`'s and `Customer Invoice`'s foreign-currency fields,
 the Årsredovisningslag (ÅRL, SFS 1995:1554); and for `Supplier
-Invoice`'s `received_date`/`sequence_number`, Bokföringsnämndens
-allmänna råd om bokföring (BFNAR 2013:2):
+Invoice`'s `received_date`/`sequence_number` and `Customer`'s
+`customer_number`, Bokföringsnämndens allmänna råd om bokföring (BFNAR
+2013:2):
 
 [1] BFL 1 kap. 2 §, 6–7 p. — definitions of *affärshändelse* and
     *verifikation*.
@@ -709,8 +1020,8 @@ allmänna råd om bokföring (BFNAR 2013:2):
     räkenskapsår, and ändring av räkenskapsår.
 [4] BFL 6 kap. 1 § — the duty to close the löpande bokföring for each
     räkenskapsår with an årsredovisning or ett årsbokslut.
-[5] BFL 5 kap. 4 § — sidoordnad bokföring, e.g. leverantörsreskontra,
-    for counterparties with many transactions.
+[5] BFL 5 kap. 4 § — sidoordnad bokföring, e.g. leverantörsreskontra
+    or kundreskontra, for counterparties with many transactions.
 [6] ML — invoice-content rules requiring both parties'
     momsregistreringsnummer on cross-border/reverse-charge purchases.
 [7] BFNAR 2013:2 — a leverantörsfaktura is treated as mottagen
@@ -722,3 +1033,8 @@ allmänna råd om bokföring (BFNAR 2013:2):
     liabilities denominated in foreign currency, relevant when a
     leverantörsfaktura's payment-date exchange rate differs from the
     rate used at booking.
+[9] BFNAR 2013:2 — commentary on BFL 5 kap. 6 § noting that a
+    kundnummer, alongside name+address, name+organisationsnummer, or a
+    momsregistreringsnummer, is an accepted way to identify a motpart,
+    provided the full customer details are recorded ("fullständiga
+    uppgifter om kunden i kundregistret").
