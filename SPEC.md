@@ -68,10 +68,17 @@ In addition to the terms defined in OKF §2, this profile uses:
   goods or services from; the "motpart" a `Verification`'s
   `counterparty` field (§4.1.1) names in free text when the
   affärshändelse is a purchase.
+- **Leverantörsfaktura (Supplier Invoice)** — an invoice received from
+  a leverantör for goods or services purchased; the document a
+  `Verification`'s `supporting_documents` (§4.1.1) references when the
+  affärshändelse is a purchase, and the accounting purpose this
+  profile's `Supplier Invoice` concept type (§4.4) serves.
 - **Leverantörsreskontra** — a sidoordnad bokföring (subsidiary
   ledger) recording, per leverantör, the invoices received and amounts
   owed (BFL 5 kap. 4 §); the accounting purpose this profile's
-  `Supplier` concept type (§4.3) serves.
+  `Supplier` (§4.3) and `Supplier Invoice` (§4.4) concept types jointly
+  serve — `Supplier` holds the leverantör's master data, `Supplier
+  Invoice` holds each invoice and amount owed.
 
 ---
 
@@ -379,8 +386,10 @@ as `counterparty`. BFL requires a bookkeeping system with many
 transactions against the same counterparty to maintain a sidoordnad
 bokföring — a leverantörsreskontra — through which those transactions
 can be identified and reconciled (BFL 5 kap. 4 §). A `Supplier`
-concept is this profile's representation of one entry in that
-leverantörsreskontra.
+concept is this profile's representation of the leverantör's
+master-data entry in that leverantörsreskontra; the individual
+invoices tracked within it are represented by `Supplier Invoice`
+concepts (§4.4).
 
 Concept ID convention: place suppliers under a `suppliers/`
 subdirectory, one file per leverantör, e.g.
@@ -460,10 +469,11 @@ Mervärdesskattelagen (ML)'s invoice-content rules:
 In addition to the OKF §4.2 conventional headings, `Supplier` concepts
 SHOULD use:
 
-| Heading           | Purpose                                                                  |
-| ------------------ | ------------------------------------------------------------------------- |
-| `# Verifications`  | Links to verifications where this supplier is the `counterparty`.       |
-| `# Citations`      | As OKF §8 — the legal or documentary basis, if not obvious from context. |
+| Heading               | Purpose                                                                  |
+| ---------------------- | ------------------------------------------------------------------------- |
+| `# Verifications`      | Links to verifications where this supplier is the `counterparty`.       |
+| `# Supplier Invoices`  | Links to `Supplier Invoice` concepts (§4.4) received from this supplier. |
+| `# Citations`          | As OKF §8 — the legal or documentary basis, if not obvious from context. |
 
 #### 4.3.3 Example
 
@@ -488,9 +498,163 @@ av kontorsmaterial.
 
 - [verifications/2026/000123](/verifications/2026/000123.md)
 
+# Supplier Invoices
+
+- [supplier-invoices/2026/KV-88213](/supplier-invoices/2026/KV-88213.md)
+
 # Citations
 
 [1] Bokföringslagen (BFL) 5 kap. 4 §, 6–7 §§
+[2] Mervärdesskattelagen (ML) — fakturans innehåll
+```
+
+---
+
+### 4.4 `Supplier Invoice`
+
+A `Supplier Invoice` concept represents exactly one leverantörsfaktura:
+a specific invoice received from a `Supplier` (§4.3), stating what is
+owed, to whom, and by when. It sits between `Supplier` and
+`Verification`: the `Supplier` is *who* the counterparty is, the
+`Supplier Invoice` is *what was invoiced and when it falls due*, and
+the `Verification` (§4.1) is *how the resulting affärshändelse was
+booked* — the leverantörsfaktura is the verifikation's underlying
+document (bokföringsunderlag), not the verifikation itself.
+
+Concept ID convention: place supplier invoices under a
+`supplier-invoices/` subdirectory, one file per leverantörsfaktura,
+e.g. `supplier-invoices/2026/KV-88213.md`. Producers SHOULD name the
+file after `invoice_number` so the corresponding leverantörsfaktura
+can be located without opening it.
+
+#### 4.4.1 Frontmatter
+
+```yaml
+---
+type: Supplier Invoice              # REQUIRED (OKF §4.1)
+supplier: <Concept ID>              # REQUIRED
+invoice_number: <string>            # REQUIRED
+invoice_date: <ISO 8601 date>       # REQUIRED
+due_date: <ISO 8601 date>           # REQUIRED
+received_date: <ISO 8601 date>      # REQUIRED
+sequence_number: <string>           # REQUIRED
+amount: <decimal> <ISO 4217 code>   # REQUIRED
+payment_status: unpaid | paid       # REQUIRED
+vat_amount: <decimal> <ISO 4217 code>  # REQUIRED when applicable
+payment_date: <ISO 8601 date>       # REQUIRED when applicable
+currency: <ISO 4217 code>           # REQUIRED when applicable
+exchange_rate: <decimal>            # REQUIRED when applicable
+verification: <Concept ID>          # Recommended
+payment_terms: <string>             # Recommended
+title: <Optional display name>      # Recommended (OKF §4.1)
+description: <Optional one-line summary>  # Recommended (OKF §4.1)
+resource: <Optional URI to source document>  # Recommended (OKF §4.1)
+tags: [<tag>, …]                    # Optional (OKF §4.1)
+timestamp: <ISO 8601 datetime>      # Recommended (OKF §4.1)
+---
+```
+
+The generic OKF fields (`type`, `title`, `description`, `resource`,
+`tags`, `timestamp`) keep their OKF §4.1 meaning.
+
+**Required**, per BFL 5 kap. 4 § (leverantörsreskontra), ML's
+invoice-content rules, and Bokföringsnämndens allmänna råd on
+löpande bokföring (BFNAR 2013:2):
+
+- `supplier` — the Concept ID of the `Supplier` (§4.3) who issued the
+  invoice, rather than repeating their identifying details in free
+  text.
+- `invoice_number` — the leverantörens fakturanummer: the supplier's
+  own invoice number, one of the identifieringstecken a
+  leverantörsreskontra must record.
+- `invoice_date` — fakturadatum: the date printed on the invoice.
+- `due_date` — förfallodatum: the date payment is due, without which
+  the reskontra cannot flag an invoice as overdue.
+- `received_date` — the date the invoice arrived at the company and
+  was ankomststämplad. This, not `invoice_date`, is what governs when
+  the invoice must be recorded: "En leverantörsfaktura är... mottagen
+  när den kommer in till företaget. Fakturadatum är således av
+  underordnad betydelse."
+- `sequence_number` — the löpnummer assigned to the invoice on
+  arrival: a second identification chain, alongside `invoice_number`,
+  needed because "[f]öretaget använder olika identifieringstecken för
+  samma faktura i leverantörsreskontran respektive bokföringen."
+- `amount` — the total sum payable, including currency, mirroring
+  `Verification.amount` (§4.1.1).
+- `payment_status` — whether the invoice is still owed (`unpaid`) or
+  has been settled (`paid`). A leverantörsreskontra exists
+  specifically to track this per invoice, so an already-paid invoice
+  is not paid twice.
+
+**Required when applicable**:
+
+- `vat_amount` — the invoice's mervärdesskatt content, when the
+  purchase carries Swedish VAT.
+- `payment_date` — the actual date payment was made. Required once
+  `payment_status` is `paid`, so that the reskontra records "datum för
+  betalning... så att du inte av misstag dubbelbetalar fakturan."
+- `currency` / `exchange_rate` — for an invoice issued in a foreign
+  currency: the original currency and the exchange rate used at
+  booking, since the rate at payment may differ and produce a
+  valutakursvinst or -förlust (ÅRL 4 kap. 13 §).
+
+**Recommended**:
+
+- `verification` — the Concept ID of the `Verification` (§4.1) that
+  books this invoice.
+- `payment_terms` — the betalningsvillkor stated on this invoice, when
+  they differ from the `Supplier`'s default `payment_terms` (§4.3.1).
+
+#### 4.4.2 Conventional body sections
+
+In addition to the OKF §4.2 conventional headings, `Supplier Invoice`
+concepts SHOULD use:
+
+| Heading         | Purpose                                                                  |
+| ---------------- | ------------------------------------------------------------------------- |
+| `# Line Items`  | The fakturarader: goods/services invoiced, quantities, and prices.       |
+| `# Payment`     | The invoice's payment/reskontra status, to avoid double payment.        |
+| `# Citations`   | As OKF §8 — the legal or documentary basis, if not obvious from context. |
+
+#### 4.4.3 Example
+
+```markdown
+---
+type: Supplier Invoice
+supplier: "suppliers/kontorsvaruhuset-ab"
+invoice_number: "KV-88213"
+invoice_date: 2026-06-28
+due_date: 2026-07-28
+received_date: 2026-06-30
+sequence_number: "L0142"
+amount: 1250.00 SEK
+vat_amount: 250.00 SEK
+payment_status: unpaid
+verification: "verifications/2026/000123"
+payment_terms: 30 dagar netto
+title: Leverantörsfaktura KV-88213 — Kontorsvaruhuset AB
+resource: "file:///arkiv/leverantorsfakturor/2026/KV-88213.pdf"
+timestamp: 2026-06-30T08:00:00Z
+---
+
+Faktura från [Kontorsvaruhuset AB](/suppliers/kontorsvaruhuset-ab.md)
+avseende kontorsmaterial till kontoret, mottagen 2026-06-30. Bokförd
+som [verifications/2026/000123](/verifications/2026/000123.md).
+
+# Line Items
+
+| Item                      | Qty | Unit Price | Amount  |
+| -------------------------- | ---: | ---------: | ------: |
+| Kontorsmaterial, diverse   |    1 |    1000.00 | 1000.00 |
+
+# Payment
+
+Ej betald. Förfaller 2026-07-28; betalningsvillkor 30 dagar netto
+från fakturadatum.
+
+# Citations
+
+[1] Bokföringslagen (BFL) 5 kap. 4 §
 [2] Mervärdesskattelagen (ML) — fakturans innehåll
 ```
 
@@ -514,19 +678,28 @@ conformance (OKF §9) **and**, additionally:
   `vat_number` whenever the underlying leverantör in fact has such a
   number, and at least one of `bankgiro`, `plusgiro`, or
   `bank_account` whenever the supplier is paid electronically (§4.3.1).
+- every concept with `type: Supplier Invoice` has all fields listed as
+  "Required" in §4.4.1, plus `vat_amount` whenever the purchase carries
+  Swedish VAT, `payment_date` whenever `payment_status` is `paid`, and
+  `currency`/`exchange_rate` whenever the invoice is issued in a
+  foreign currency (§4.4.1).
 
 As with OKF itself (OKF §9), consumers MUST NOT reject a
-`Verification`, `Fiscal Year`, or `Supplier` concept over missing
-"Recommended" fields — only over missing "Required" (or applicable
-"Required when applicable") fields.
+`Verification`, `Fiscal Year`, `Supplier`, or `Supplier Invoice`
+concept over missing "Recommended" fields — only over missing
+"Required" (or applicable "Required when applicable") fields.
 
 ---
 
 ## 7. Citations
 
-The requirements in §4.1 and §4.3 are drawn directly from the
-Bokföringslag (BFL, SFS 1999:1078) and, for `Supplier`'s VAT number,
-the Mervärdesskattelag (ML, SFS 2023:200):
+The requirements in §4.1, §4.3, and §4.4 are drawn directly from the
+Bokföringslag (BFL, SFS 1999:1078); for `Supplier`'s VAT number and
+`Supplier Invoice`'s invoice-content fields, the Mervärdesskattelag
+(ML, SFS 2023:200); for `Supplier Invoice`'s foreign-currency fields,
+the Årsredovisningslag (ÅRL, SFS 1995:1554); and for `Supplier
+Invoice`'s `received_date`/`sequence_number`, Bokföringsnämndens
+allmänna råd om bokföring (BFNAR 2013:2):
 
 [1] BFL 1 kap. 2 §, 6–7 p. — definitions of *affärshändelse* and
     *verifikation*.
@@ -540,3 +713,12 @@ the Mervärdesskattelag (ML, SFS 2023:200):
     for counterparties with many transactions.
 [6] ML — invoice-content rules requiring both parties'
     momsregistreringsnummer on cross-border/reverse-charge purchases.
+[7] BFNAR 2013:2 — a leverantörsfaktura is treated as mottagen
+    (received) on arrival at the company, ankomststämplad and assigned
+    a löpnummer distinct from its own fakturanummer, so the
+    leverantörsreskontra and the resulting verifikation stay traceable
+    to one another.
+[8] ÅRL 4 kap. 13 § — omräkning till svenska kronor of claims and
+    liabilities denominated in foreign currency, relevant when a
+    leverantörsfaktura's payment-date exchange rate differs from the
+    rate used at booking.
