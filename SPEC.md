@@ -93,6 +93,14 @@ In addition to the terms defined in OKF §2, this profile uses:
   `Customer` (§4.5) and `Customer Invoice` (§4.6) concept types jointly
   serve — `Customer` holds the kund's master data, `Customer Invoice`
   holds each invoice and amount owed.
+- **Anställd (Employee)** — a natural person employed by the company in
+  return for lön (salary/wages); the "motpart" a `Verification`'s
+  `counterparty` field (§4.1.1) names in free text when the
+  affärshändelse is a löneutbetalning (salary payment). The accounting
+  purpose this profile's `Employee` concept type (§4.7) serves is the
+  per-person identifying and tax-withholding data an arbetsgivare must
+  hold to run löpande löneadministration and report each month's
+  arbetsgivardeklaration på individnivå (AGI).
 
 ---
 
@@ -960,6 +968,140 @@ fakturadatum.
 
 ---
 
+### 4.7 `Employee`
+
+An `Employee` concept represents exactly one anställd: a person the
+company pays lön to, and for whom the company must hold enough
+identifying and tax data to run löpande löneadministration and to
+report each month's arbetsgivardeklaration på individnivå (AGI) —
+the per-person breakdown of paid ersättning and gjorda skatteavdrag
+that Skatteförfarandelagen (SFL) has required since 2019 (26 kap.).
+An `Employee` concept is this profile's representation of that
+per-person master data; the individual löneutbetalningar are recorded,
+like any other affärshändelse, as `Verification` concepts (§4.1) that
+name the employee as `counterparty`.
+
+Concept ID convention: place employees under an `employees/`
+subdirectory, one file per anställd, e.g.
+`employees/anna-svensson.md`. Producers SHOULD use a stable,
+recognizable slug so a `Verification`'s free-text `counterparty`
+(§4.1.1) can be matched to the corresponding `Employee` concept
+without ambiguity.
+
+#### 4.7.1 Frontmatter
+
+```yaml
+---
+type: Employee                     # REQUIRED (OKF §4.1)
+title: <Full name>                 # REQUIRED
+personal_number: <string>          # REQUIRED when applicable
+address: <string>                  # REQUIRED when applicable
+tax_table: <integer>               # REQUIRED when applicable
+tax_column: <integer>              # REQUIRED when tax_table is set
+tax_adjustment: <string>           # REQUIRED when applicable
+bank_account: [<string>, …]        # REQUIRED when applicable
+end_date: <ISO 8601 date>          # REQUIRED when applicable
+employment_number: <string>        # Recommended
+start_date: <ISO 8601 date>        # Recommended
+employment_type: monthly | hourly | board_fee  # Recommended
+position: <string>                 # Recommended
+description: <Optional one-line summary>  # Recommended (OKF §4.1)
+tags: [<tag>, …]                   # Optional (OKF §4.1)
+timestamp: <ISO 8601 datetime>     # Recommended (OKF §4.1)
+---
+```
+
+The generic OKF fields (`type`, `description`, `tags`, `timestamp`)
+keep their OKF §4.1 meaning, with one change: `title` is **required**
+for `Employee`, not merely recommended — promoted from OKF's generic
+"Recommended" (OKF §4.1) for the same reason as `Customer.title`
+(§4.5.1): a löneutbetalning's `counterparty` names the anställd by
+name, and that name has to resolve to a concept.
+
+**Required when applicable**, per SFL 26 kap. (individuppgift i
+arbetsgivardeklaration på individnivå) and 10–11 kap. (skatteavdrag
+enligt skattetabell och jämkning):
+
+- `personal_number` — the personnummer (or, for a foreign anställd not
+  in folkbokföringen, a samordningsnummer) identifying the anställd as
+  the "motpart" a `Verification`'s `counterparty` field (§4.1.1) names
+  in free text, and the identifier the AGI reports per person each
+  month. Omit only for the rare anställd Skatteverket has not yet
+  assigned either number to.
+- `tax_table` — the preliminärskattetabell Skatteverket has assigned
+  the anställd, used to compute the skatteavdrag on each
+  löneutbetalning. Omit for an anställd taxed under Lag (1991:586) om
+  särskild inkomstskatt för utomlands bosatta (SINK), who pays a flat
+  rate instead of a table-based deduction.
+- `tax_column` — the skattekolumn within `tax_table` (Skatteverket's
+  tables run several columns side by side, e.g. for differing antal
+  dagar per vecka or biinkomst treatment); `tax_table` alone does not
+  fix a single skatteavdrag belopp without it. Required whenever
+  `tax_table` is present; omit together with `tax_table` under the
+  same SINK exception.
+- `tax_adjustment` — the jämkningsbeslut Skatteverket has issued for
+  the anställd, when one exists, since it overrides the deduction
+  `tax_table` would otherwise produce.
+- `address` — the anställdas home address. Omit only when the company
+  does not hold it on file, e.g. an anställd supplied and paid through
+  a personnel-leasing arrangement whose employer of record maintains
+  the address.
+- `bank_account` — the account lönen is paid into. Required whenever
+  the anställd is paid electronically, mirroring `Supplier.bank_account`
+  (§4.3.1).
+- `end_date` — the anställd's last day of employment. Required once
+  the anställning has ended.
+
+**Recommended**:
+
+- `employment_number` — the anställningsnummer, if the company assigns
+  one.
+- `start_date` — the anställningsdatum.
+- `employment_type` — whether the anställd is paid `monthly`
+  (månadslön), `hourly` (timlön), or a `board_fee` (styrelsearvode).
+- `position` — the anställdas befattning.
+
+#### 4.7.2 Conventional body sections
+
+In addition to the OKF §4.2 conventional headings, `Employee` concepts
+SHOULD use:
+
+| Heading          | Purpose                                                                   |
+| ----------------- | -------------------------------------------------------------------------- |
+| `# Verifications` | Links to verifications where this employee is the `counterparty`.        |
+| `# Citations`     | As OKF §8 — the legal or documentary basis, if not obvious from context. |
+
+#### 4.7.3 Example
+
+```markdown
+---
+type: Employee
+title: Anna Svensson
+personal_number: "19850612-1234"
+address: Vallgatan 12, 411 16 Göteborg
+tax_table: 33
+tax_column: 1
+bank_account: ["SE45 5000 0000 0583 9825 7466"]
+employment_number: "E-014"
+start_date: 2022-03-01
+employment_type: monthly
+position: Redovisningsekonom
+timestamp: 2022-03-01T08:00:00Z
+---
+
+Anna Svensson, anställd som redovisningsekonom sedan 2022-03-01.
+
+# Verifications
+
+- [verifications/2026/000201](/verifications/2026/000201.md)
+
+# Citations
+
+[1] Skatteförfarandelagen (SFL) 26 kap., 10–11 kap.
+```
+
+---
+
 ## 6. Conformance
 
 A bundle is conformant with this profile if it satisfies OKF v0.1
@@ -991,12 +1133,17 @@ conformance (OKF §9) **and**, additionally:
   Swedish VAT, `payment_date` whenever `payment_status` is `paid`, and
   `currency`/`exchange_rate` whenever the invoice is issued in a
   foreign currency (§4.6.1).
+- every concept with `type: Employee` has `title`, plus
+  `personal_number`, `address`, `tax_table`, `tax_adjustment`, and
+  `bank_account` whenever the underlying anställd in fact has such
+  data on file; `tax_column` whenever `tax_table` is present; and
+  `end_date` whenever the anställning has ended (§4.7.1).
 
 As with OKF itself (OKF §9), consumers MUST NOT reject a
 `Verification`, `Fiscal Year`, `Supplier`, `Supplier Invoice`,
-`Customer`, or `Customer Invoice` concept over missing "Recommended"
-fields — only over missing "Required" (or applicable "Required when
-applicable") fields.
+`Customer`, `Customer Invoice`, or `Employee` concept over missing
+"Recommended" fields — only over missing "Required" (or applicable
+"Required when applicable") fields.
 
 ---
 
@@ -1007,10 +1154,13 @@ from the Bokföringslag (BFL, SFS 1999:1078); for `Supplier`'s and
 `Customer`'s VAT numbers and `Supplier Invoice`'s/`Customer Invoice`'s
 invoice-content fields, the Mervärdesskattelag (ML, SFS 2023:200); for
 `Supplier Invoice`'s and `Customer Invoice`'s foreign-currency fields,
-the Årsredovisningslag (ÅRL, SFS 1995:1554); and for `Supplier
+the Årsredovisningslag (ÅRL, SFS 1995:1554); for `Supplier
 Invoice`'s `received_date`/`sequence_number` and `Customer`'s
 `customer_number`, Bokföringsnämndens allmänna råd om bokföring (BFNAR
-2013:2):
+2013:2); and for `Employee`'s identifying and tax-withholding fields
+(§4.7), the Skatteförfarandelag (SFL, SFS 2011:1244) and, for the
+`tax_table` exception, Lag (1991:586) om särskild inkomstskatt för
+utomlands bosatta (SINK):
 
 [1] BFL 1 kap. 2 §, 6–7 p. — definitions of *affärshändelse* and
     *verifikation*.
@@ -1038,3 +1188,13 @@ Invoice`'s `received_date`/`sequence_number` and `Customer`'s
     momsregistreringsnummer, is an accepted way to identify a motpart,
     provided the full customer details are recorded ("fullständiga
     uppgifter om kunden i kundregistret").
+[10] SFL 26 kap. — the duty to report an individuppgift per anställd
+     (personnummer/samordningsnummer, utbetald ersättning, gjort
+     skatteavdrag) in each month's arbetsgivardeklaration på
+     individnivå (AGI).
+[11] SFL 10–11 kap. — skatteavdrag enligt skattetabell, and jämkning
+     of that deduction on Skatteverket's decision.
+[12] Lag (1991:586) om särskild inkomstskatt för utomlands bosatta
+     (SINK) — the flat-rate alternative to table-based skatteavdrag for
+     an anställd bosatt utomlands, relevant to the `tax_table`
+     exception in §4.7.1.
