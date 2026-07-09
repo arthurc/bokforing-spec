@@ -101,6 +101,17 @@ In addition to the terms defined in OKF §2, this profile uses:
   per-person identifying and tax-withholding data an arbetsgivare must
   hold to run löpande löneadministration and report each month's
   arbetsgivardeklaration på individnivå (AGI).
+- **Lönespecifikation (Payslip)** — the specification an arbetsgivare
+  issues an anställd for one löneperiod, breaking down how bruttolön
+  (gross pay) becomes nettolön (net pay) through its lönearter: grundlön,
+  tillägg, skattefria kostnadsersättningar (e.g. utlägg), avdragen skatt,
+  and other avdrag. It sits between `Employee` and `Verification` the
+  same way `Supplier Invoice` sits between `Supplier` and `Verification`
+  (§4.4): the `Employee` is *who* the anställd is, the `Payslip`
+  (§4.8) is *what was paid, for which period, and how it breaks down*,
+  and the `Verification` (§4.1) is *how the resulting löneutbetalning
+  was booked* — the lönespecifikation is the verifikation's underlying
+  document (bokföringsunderlag), not the verifikation itself.
 
 ---
 
@@ -1102,6 +1113,150 @@ Anna Svensson, anställd som redovisningsekonom sedan 2022-03-01.
 
 ---
 
+### 4.8 `Payslip`
+
+A `Payslip` concept represents exactly one lönespecifikation: the
+breakdown an arbetsgivare gives an `Employee` (§4.7) for one löneperiod,
+stating what was paid and how the bruttolön (gross pay) became the
+nettolön (net pay) actually transferred. It sits between `Employee` and
+`Verification`, mirroring how `Supplier Invoice` (§4.4) sits between
+`Supplier` and `Verification`: the `Employee` is *who* the anställd is,
+the `Payslip` is *what was paid, for which period, and how it breaks
+down*, and the `Verification` (§4.1) is *how the resulting
+löneutbetalning was booked* — the lönespecifikation is the
+verifikation's underlying document (bokföringsunderlag), not the
+verifikation itself.
+
+Concept ID convention: place payslips under a `payslips/` subdirectory,
+one file per lönespecifikation, e.g.
+`payslips/2026/anna-svensson-2026-06.md`. Unlike a leverantörsfaktura
+or kundfaktura, a lönespecifikation carries no invoice-style löpnummer
+of its own, so producers SHOULD name the file after the anställd's slug
+and the löneperiod instead.
+
+#### 4.8.1 Frontmatter
+
+```yaml
+---
+type: Payslip                      # REQUIRED (OKF §4.1)
+employee: <Concept ID>             # REQUIRED
+start_date: <ISO 8601 date>        # REQUIRED
+end_date: <ISO 8601 date>          # REQUIRED
+payment_date: <ISO 8601 date>      # REQUIRED
+gross_pay: <decimal> <ISO 4217 code>   # REQUIRED
+tax_withheld: <decimal> <ISO 4217 code>  # REQUIRED
+net_pay: <decimal> <ISO 4217 code>     # REQUIRED
+other_deductions: <decimal> <ISO 4217 code>  # REQUIRED when applicable
+employer_contributions: <decimal> <ISO 4217 code>  # Recommended
+verification: <Concept ID>         # Recommended
+title: <Optional display name>     # Recommended (OKF §4.1)
+description: <Optional one-line summary>  # Recommended (OKF §4.1)
+resource: <Optional URI to source document>  # Recommended (OKF §4.1)
+tags: [<tag>, …]                   # Optional (OKF §4.1)
+timestamp: <ISO 8601 datetime>     # Recommended (OKF §4.1)
+---
+```
+
+The generic OKF fields (`type`, `title`, `description`, `resource`,
+`tags`, `timestamp`) keep their OKF §4.1 meaning.
+
+**Required**, per BFL 5 kap. 6–7 §§ (bokföringsunderlag for the
+löneutbetalning) and SFL 26 kap. (individuppgift i
+arbetsgivardeklaration på individnivå, AGI):
+
+- `employee` — the Concept ID of the `Employee` (§4.7) the
+  lönespecifikation was issued to, rather than repeating their
+  identifying details in free text.
+- `start_date` / `end_date` — the löneperiod the specifikationen
+  covers, mirroring `Fiscal Year.start_date`/`end_date` (§4.2.1). A
+  löneperiod MAY be shorter than a full month — for example, an
+  anställd who börjar or slutar sin anställning mid-period — so both
+  dates are required rather than a single period label.
+- `payment_date` — utbetalningsdagen: the date lönen was actually
+  transferred, mirroring `Supplier Invoice.payment_date`/`Customer
+  Invoice.payment_date` (§4.4.1/§4.6.1) and the date the `Verification`
+  (§4.1) booking the löneutbetalning should carry as its
+  `transaction_date`.
+- `gross_pay` — bruttolönen: the sum of all lönearter before avdrag,
+  and one of the two per-anställd figures SFL 26 kap. requires
+  reporting each month in the AGI individuppgift.
+- `tax_withheld` — the avdragna preliminärskatten: the second of the
+  two per-anställd figures SFL 26 kap. requires in the AGI
+  individuppgift.
+- `net_pay` — nettolönen actually paid out, mirroring
+  `Verification.amount` (§4.1.1) so the lönespecifikation can be
+  reconciled against the löneutbetalning it documents.
+
+**Required when applicable**:
+
+- `other_deductions` — the sum of any avdrag beyond `tax_withheld`,
+  e.g. fackföreningsavgift, reglering av löneförskott, or utmätning.
+  Required whenever such a deduction was made; omit for a payslip with
+  no deductions besides preliminary tax.
+
+**Recommended**:
+
+- `employer_contributions` — the arbetsgivaravgifter (and, where
+  relevant, särskild löneskatt) computed on this payslip's ersättning.
+  A lönespecifikation given to the anställd does not always itemize
+  this — it is an employer cost, not a deduction from the anställd's
+  lön — but producers MAY record it here rather than only in the
+  `Verification`'s kontering (§4.1.2).
+- `verification` — the Concept ID of the `Verification` (§4.1) that
+  books the löneutbetalning.
+- `resource` — a URI to the original lönebesked document, when one
+  exists.
+
+#### 4.8.2 Conventional body sections
+
+In addition to the OKF §4.2 conventional headings, `Payslip` concepts
+SHOULD use:
+
+| Heading         | Purpose                                                                                    |
+| ---------------- | -------------------------------------------------------------------------------------------- |
+| `# Line Items`  | The lönearter: salary components, benefits, cost reimbursements (e.g. utlägg), and deductions that sum from `gross_pay` to `net_pay`. |
+| `# Citations`   | As OKF §8 — the legal or documentary basis, if not obvious from context.                   |
+
+#### 4.8.3 Example
+
+```markdown
+---
+type: Payslip
+employee: "employees/anna-svensson"
+start_date: 2026-06-01
+end_date: 2026-06-30
+payment_date: 2026-06-25
+gross_pay: 32000.00 SEK
+tax_withheld: 8100.00 SEK
+net_pay: 24050.00 SEK
+other_deductions: 300.00 SEK
+employer_contributions: 10240.00 SEK
+verification: "verifications/2026/000201"
+title: Lönespecifikation Anna Svensson — juni 2026
+timestamp: 2026-06-25T08:00:00Z
+---
+
+Lönespecifikation för [Anna Svensson](/employees/anna-svensson.md)
+avseende juni 2026. Bokförd som
+[verifications/2026/000201](/verifications/2026/000201.md).
+
+# Line Items
+
+| Löneart                 | Typ    |   Belopp |
+| ------------------------ | ------ | -------: |
+| Månadslön                | Lön    | 32000.00 |
+| Utlägg, kontorsmaterial  | Utlägg |   450.00 |
+| Avdragen skatt           | Avdrag | -8100.00 |
+| Fackföreningsavgift      | Avdrag |  -300.00 |
+
+# Citations
+
+[1] Bokföringslagen (BFL) 5 kap. 6–7 §§
+[2] Skatteförfarandelagen (SFL) 26 kap.
+```
+
+---
+
 ## 6. Conformance
 
 A bundle is conformant with this profile if it satisfies OKF v0.1
@@ -1138,12 +1293,15 @@ conformance (OKF §9) **and**, additionally:
   `bank_account` whenever the underlying anställd in fact has such
   data on file; `tax_column` whenever `tax_table` is present; and
   `end_date` whenever the anställning has ended (§4.7.1).
+- every concept with `type: Payslip` has all fields listed as
+  "Required" in §4.8.1, plus `other_deductions` whenever a deduction
+  beyond `tax_withheld` was made (§4.8.1).
 
 As with OKF itself (OKF §9), consumers MUST NOT reject a
 `Verification`, `Fiscal Year`, `Supplier`, `Supplier Invoice`,
-`Customer`, `Customer Invoice`, or `Employee` concept over missing
-"Recommended" fields — only over missing "Required" (or applicable
-"Required when applicable") fields.
+`Customer`, `Customer Invoice`, `Employee`, or `Payslip` concept over
+missing "Recommended" fields — only over missing "Required" (or
+applicable "Required when applicable") fields.
 
 ---
 
@@ -1157,10 +1315,12 @@ invoice-content fields, the Mervärdesskattelag (ML, SFS 2023:200); for
 the Årsredovisningslag (ÅRL, SFS 1995:1554); for `Supplier
 Invoice`'s `received_date`/`sequence_number` and `Customer`'s
 `customer_number`, Bokföringsnämndens allmänna råd om bokföring (BFNAR
-2013:2); and for `Employee`'s identifying and tax-withholding fields
+2013:2); for `Employee`'s identifying and tax-withholding fields
 (§4.7), the Skatteförfarandelag (SFL, SFS 2011:1244) and, for the
 `tax_table` exception, Lag (1991:586) om särskild inkomstskatt för
-utomlands bosatta (SINK):
+utomlands bosatta (SINK); and for `Payslip`'s ersättnings- and
+skatteavdrag fields (§4.8), the same Bokföringslag provisions as §4.1
+and the same Skatteförfarandelag provisions as §4.7:
 
 [1] BFL 1 kap. 2 §, 6–7 p. — definitions of *affärshändelse* and
     *verifikation*.
