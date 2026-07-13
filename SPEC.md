@@ -112,6 +112,24 @@ In addition to the terms defined in OKF §2, this profile uses:
   and the `Verification` (§4.1) is *how the resulting löneutbetalning
   was booked* — the lönespecifikation is the verifikation's underlying
   document (bokföringsunderlag), not the verifikation itself.
+- **Kontoplan (Chart of Accounts)** — a bookkeeping system's complete
+  list of accounts, each account's number and name, forming part of
+  the systemdokumentation BFL 5 kap. 1 § requires (§7 [13]). This
+  profile's `Chart of Accounts` concept type (§4.9) represents the
+  kontoplan bundle-wide, one file per bundle rather than per
+  räkenskapsår or per account — mirroring how `Supplier` (§4.3),
+  `Customer` (§4.5), and `Employee` (§4.7) hold bundle-wide master data
+  rather than duplicating it per fiscal year, but unlike them, as a
+  single file rather than one file per entity.
+- **Momsdeklaration** — the periodic mervärdesskattedeklaration a
+  VAT-registered company files with Skatteverket, reporting utgående
+  and ingående moms and other VAT-relevant amounts per
+  redovisningsperiod into a fixed set of numbered fält (rutor) that
+  Skatteverket's blankett defines (SFL 26 kap.). This profile's `Chart
+  of Accounts` concept type (§4.9) records, per account, which of
+  these fält (if any) the account's postings map into, so that a
+  momsdeklaration can be derived by summing `Verification` (§4.1)
+  postings per account and rolling them up via that mapping.
 
 ---
 
@@ -1257,6 +1275,136 @@ avseende juni 2026. Bokförd som
 
 ---
 
+### 4.9 `Chart of Accounts`
+
+A `Chart of Accounts` concept represents the kontoplan: the company's
+complete list of bookkeeping accounts, their names, and — where
+relevant — which field of the periodic mervärdesskattedeklaration each
+account's postings map into. BFL requires every bookkeeping system to
+be accompanied by a systemdokumentation describing the system's
+organisation and structure, "så att sambanden mellan
+systemdokumentationen och den löpande bokföringen enkelt kan utläsas"
+(BFL 5 kap. 1 §) — a kontoplan is a core part of that documentation,
+since without it the accounts referenced by every `Verification`'s
+kontering (§4.1.2) and every `Fiscal Year`'s balances (§4.2.1) cannot
+be understood on their own. Separately, a VAT-registered company must
+file a periodic mervärdesskattedeklaration reporting utgående and
+ingående moms, among other amounts, per redovisningsperiod (SFL 26
+kap.); Skatteverket's blankett for that declaration divides these
+amounts into a fixed set of numbered fält (rutor). A `Chart of
+Accounts` concept lets tooling derive that declaration automatically,
+by summing `Verification` postings per account and rolling the sums up
+through this account-to-fält mapping.
+
+Unlike `Supplier` (§4.3), `Customer` (§4.5), and `Employee` (§4.7) —
+which are also bundle-wide master data, but one file per entity — a
+`Chart of Accounts` concept is a single file for the whole bundle,
+since the systemdokumentation BFL 5 kap. 1 § requires describes the
+bookkeeping system as a whole, not one leverantör, kund, or anställd at
+a time. It is also, like `Supplier`/`Customer`/`Employee`, scoped to
+the company as a whole rather than to any one `Fiscal Year` (§4.2): a
+kontoplan may occasionally be revised, but it is not duplicated per
+räkenskapsår, and producers SHOULD update the single file in place —
+bumping `timestamp` — when accounts are added, renamed, or remapped.
+
+Concept ID convention: place the chart of accounts at the bundle root
+as `chart-of-accounts.md`. There is exactly one `Chart of Accounts`
+concept per bundle — not one file per account and not one per fiscal
+year — so, unlike §4.1–§4.8, no subdirectory or per-entity filename
+convention is needed.
+
+#### 4.9.1 Frontmatter
+
+```yaml
+---
+type: Chart of Accounts            # REQUIRED (OKF §4.1)
+account_standard: <string>         # Recommended
+title: <Optional display name>     # Recommended (OKF §4.1)
+description: <Optional one-line summary>  # Recommended (OKF §4.1)
+tags: [<tag>, …]                   # Optional (OKF §4.1)
+timestamp: <ISO 8601 datetime>     # Recommended (OKF §4.1)
+---
+```
+
+The generic OKF fields (`type`, `title`, `description`, `tags`,
+`timestamp`) keep their OKF §4.1 meaning.
+
+**Recommended**:
+
+- `account_standard` — which version of the Baskontoplan (BAS) or other
+  kontoplan standard this chart of accounts follows, e.g. `"BAS 2026"`.
+  Not itself a legal requirement — BFL 5 kap. 1 § requires a
+  systemdokumentation, not adherence to any particular published
+  kontoplan — but recording it lets tooling and readers understand
+  where an account's number and name originate, and flag drift once
+  the underlying BAS standard is later revised.
+
+**Accounts**, per BFL 5 kap. 1 §:
+
+An account's number, name, and (where applicable) VAT declaration
+field are per-account data, not a single scalar, so — like a `Fiscal
+Year`'s balances (§4.2.1) — they belong in the body as a table, not in
+frontmatter:
+
+- A `Chart of Accounts` concept MUST include an `# Accounts` body
+  section (§4.9.2), listing every account number and account name the
+  bookkeeping system uses. A systemdokumentation that omits accounts
+  actually posted to in `Verification` concepts (§4.1.2) does not let
+  "sambanden mellan systemdokumentationen och den löpande bokföringen"
+  be readily understood, as BFL 5 kap. 1 § requires.
+- The VAT Declaration Field column is **required when applicable**:
+  populate it for every account whose transactions are to be summed
+  into a specific field (ruta) of the periodic
+  mervärdesskattedeklaration — for example an utgående-moms account, an
+  ingående-moms account, or an EU purchase/sale account. Leave it empty
+  for accounts with no such mapping, e.g. a bank account or an
+  inventory account, whose postings never enter the moms return.
+
+#### 4.9.2 Conventional body sections
+
+In addition to the OKF §4.2 conventional headings, `Chart of Accounts`
+concepts SHOULD use:
+
+| Heading      | Purpose                                                                                                          |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `# Accounts` | The kontoplan: every account number and name, and, where applicable, the momsdeklaration field it maps to. REQUIRED. |
+| `# Citations` | As OKF §8 — the legal or documentary basis, if not obvious from context.                                        |
+
+#### 4.9.3 Example
+
+```markdown
+---
+type: Chart of Accounts
+account_standard: "BAS 2026"
+title: Kontoplan — Company AB
+description: Kontoplan för Company AB, med varje kontos mappning mot
+  fält i den periodiska mervärdesskattedeklarationen, där sådan
+  mappning finns.
+timestamp: 2026-07-01T09:00:00Z
+---
+
+Kontoplan för Company AB, baserad på BAS 2026. Konton utan
+mervärdesskatterelevans, t.ex. bankkonton, saknar en VAT Declaration
+Field-post.
+
+# Accounts
+
+| Account | Account Name                                     | VAT Declaration Field |
+| ------- | ------------------------------------------------- | ---------------------- |
+| 1930    | Företagskonto / affärskonto                        |                         |
+| 2611    | Utgående moms på försäljning inom Sverige, 25 %    | 10                      |
+| 2640    | Ingående moms                                      | 48                      |
+| 4535    | Inköp av tjänster från annat EU-land, 25 %         | C21                     |
+
+# Citations
+
+[1] Bokföringslagen (BFL) 5 kap. 1 §
+[2] Mervärdesskattelagen (ML); Skatteförfarandelagen (SFL) 26 kap. —
+    Skatteverkets blankett för mervärdesskattedeklaration
+```
+
+---
+
 ## 6. Conformance
 
 A bundle is conformant with this profile if it satisfies OKF v0.1
@@ -1296,12 +1444,17 @@ conformance (OKF §9) **and**, additionally:
 - every concept with `type: Payslip` has all fields listed as
   "Required" in §4.8.1, plus `other_deductions` whenever a deduction
   beyond `tax_withheld` was made (§4.8.1).
+- every concept with `type: Chart of Accounts` includes an `# Accounts`
+  body section (§4.9.2) listing every account number and account name
+  the bookkeeping system uses, with the VAT Declaration Field populated
+  for every account whose transactions map to a field of the periodic
+  mervärdesskattedeklaration (§4.9.1).
 
 As with OKF itself (OKF §9), consumers MUST NOT reject a
 `Verification`, `Fiscal Year`, `Supplier`, `Supplier Invoice`,
-`Customer`, `Customer Invoice`, `Employee`, or `Payslip` concept over
-missing "Recommended" fields — only over missing "Required" (or
-applicable "Required when applicable") fields.
+`Customer`, `Customer Invoice`, `Employee`, `Payslip`, or `Chart of
+Accounts` concept over missing "Recommended" fields — only over
+missing "Required" (or applicable "Required when applicable") fields.
 
 ---
 
@@ -1318,9 +1471,13 @@ Invoice`'s `received_date`/`sequence_number` and `Customer`'s
 2013:2); for `Employee`'s identifying and tax-withholding fields
 (§4.7), the Skatteförfarandelag (SFL, SFS 2011:1244) and, for the
 `tax_table` exception, Lag (1991:586) om särskild inkomstskatt för
-utomlands bosatta (SINK); and for `Payslip`'s ersättnings- and
+utomlands bosatta (SINK); for `Payslip`'s ersättnings- and
 skatteavdrag fields (§4.8), the same Bokföringslag provisions as §4.1
-and the same Skatteförfarandelag provisions as §4.7:
+and the same Skatteförfarandelag provisions as §4.7; and for `Chart of
+Accounts` (§4.9), the Bokföringslag's systemdokumentation requirement
+for the concept type's existence, and the Mervärdesskattelag together
+with the Skatteförfarandelag's periodic skattedeklaration provisions
+for the VAT-declaration-field mapping itself:
 
 [1] BFL 1 kap. 2 §, 6–7 p. — definitions of *affärshändelse* and
     *verifikation*.
@@ -1358,3 +1515,14 @@ and the same Skatteförfarandelag provisions as §4.7:
      (SINK) — the flat-rate alternative to table-based skatteavdrag for
      an anställd bosatt utomlands, relevant to the `tax_table`
      exception in §4.7.1.
+[13] BFL 5 kap. 1 § — the duty to maintain a systemdokumentation
+     describing the bookkeeping system's organisation and structure,
+     "så att sambanden mellan systemdokumentationen och den löpande
+     bokföringen enkelt kan utläsas"; a kontoplan is a core part of
+     that documentation.
+[14] ML, together with SFL 26 kap.'s periodic skattedeklaration
+     provisions — the duty to report utgående and ingående moms per
+     redovisningsperiod. The specific fält/ruta numbering used to do so
+     is set by Skatteverket's blankett for the mervärdesskattedeklaration,
+     not by a paragraf in ML or SFL, so — like [6] — this citation is
+     at the chapter/form level rather than a specific paragraf.
