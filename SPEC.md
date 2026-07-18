@@ -112,6 +112,16 @@ In addition to the terms defined in OKF §2, this profile uses:
   and the `Verification` (§4.1) is *how the resulting löneutbetalning
   was booked* — the lönespecifikation is the verifikation's underlying
   document (bokföringsunderlag), not the verifikation itself.
+- **Utlägg (Expense)** — a business cost an anställd (or, in an
+  aktiebolag, a närstående such as the owner) pays with personal
+  funds on the company's behalf, creating a debt the company owes
+  back to that person until reglerad (settled) — typically at the
+  next löneutbetalning, alongside the `Payslip`'s (§4.8) other
+  lönearter, or via a direct payout. Skatteverket treats an utlägg
+  with no kvitto (receipt) preserved as not established, and
+  requalifies it as taxable lön instead — this profile's `Expense`
+  concept type (§4.10) exists to make that underlying kvitto and its
+  reimbursement status explicit and checkable.
 - **Kontoplan (Chart of Accounts)** — a bookkeeping system's complete
   list of accounts, each account's number and name, forming part of
   the systemdokumentation BFL 5 kap. 1 § requires (§7 [13]). This
@@ -1405,6 +1415,170 @@ Field-post.
 
 ---
 
+### 4.10 `Expense`
+
+An `Expense` concept represents exactly one utlägg: a business cost an
+anställd (or, in an aktiebolag, a närstående such as the owner) has
+paid with personal funds on the company's behalf, creating a debt the
+company owes back to that person. It sits between `Employee` (§4.7)
+and `Verification`/`Payslip` (§4.8): the `Employee` is *who* paid
+privately, the `Expense` is *what was paid, evidenced by which kvitto,
+and whether/how it has been reimbursed*, and the `Verification` (§4.1)
+is *how the resulting cost and debt were booked* — the kvitto is the
+verifikation's underlying document (bokföringsunderlag), not the
+verifikation itself.
+
+An utlägg is booked in two steps, and this profile's fields exist to
+keep both traceable: the cost and any moms are booked immediately
+against a debt-to-employee account when the outlay occurs, and that
+debt is later settled — often bundled into the employee's next
+`Payslip` as an untaxed löneart rather than paid out directly. A
+bookkeeping guide's own worked example of a failed audit illustrates
+why the kvitto matters: an utlägg claimed with no kvitto preserved was
+requalified by Skatteverket as ordinary lön, triggering
+arbetsgivaravgifter and a skattetillägg on top. This profile therefore
+promotes OKF's generic `resource` field (OKF §4.1) from Recommended to
+**required** for `Expense` — an utlägg concept with no referenced
+kvitto does not evidence a real utlägg.
+
+Concept ID convention: place expenses under an `expenses/`
+subdirectory, one file per utlägg, e.g.
+`expenses/2026/anna-svensson-2026-06-03.md`. Like a `Payslip` (§4.8),
+an utlägg carries no invoice-style löpnummer of its own, so producers
+SHOULD name the file after the anställd's slug and the
+`expense_date` instead.
+
+#### 4.10.1 Frontmatter
+
+```yaml
+---
+type: Expense                      # REQUIRED (OKF §4.1)
+employee: <Concept ID>             # REQUIRED
+expense_date: <ISO 8601 date>      # REQUIRED
+description: <string>              # REQUIRED
+amount: <decimal> <ISO 4217 code>  # REQUIRED
+resource: <URI to receipt/kvitto>  # REQUIRED
+reimbursement_status: unpaid | paid  # REQUIRED
+vat_amount: <decimal> <ISO 4217 code>  # REQUIRED when applicable
+reimbursement_date: <ISO 8601 date>    # REQUIRED when applicable
+currency: <ISO 4217 code>          # REQUIRED when applicable
+exchange_rate: <decimal>           # REQUIRED when applicable
+verification: <Concept ID>         # Recommended
+payslip: <Concept ID>              # Recommended
+title: <Optional display name>     # Recommended (OKF §4.1)
+tags: [<tag>, …]                   # Optional (OKF §4.1)
+timestamp: <ISO 8601 datetime>     # Recommended (OKF §4.1)
+---
+```
+
+The generic OKF fields (`type`, `title`, `tags`, `timestamp`) keep
+their OKF §4.1 meaning, with two changes: `description` is **required**
+for `Expense`, not merely recommended, mirroring
+`Verification.description` (§4.1.1); and `resource` is **required**,
+not merely recommended, for the reason given above.
+
+**Required**:
+
+- `employee` — the Concept ID of the `Employee` (§4.7) who paid the
+  utlägg with personal funds, rather than repeating their identifying
+  details in free text.
+- `expense_date` — the date the utlägg was made: when the anställd
+  actually paid with personal funds, mirroring
+  `Verification.transaction_date` (§4.1.1).
+- `description` — what the utlägg concerns — what was bought or which
+  cost it covers, e.g. kontorsmaterial, en tjänsteresa, or
+  trängselskatt. Stricter than OKF's generic "one-sentence summary"
+  (OKF §4.1), mirroring `Verification.description` (§4.1.1).
+- `amount` — the total sum the anställd paid, including any moms.
+- `resource` — a URI to the kvitto: promoted to required, since a
+  bookkeeping guide notes that "den anställde måste spara alla kvitton
+  för att det ska betraktas som ett utlägg och vara avdragsgillt för
+  företaget" — without a referenced kvitto, an `Expense` concept does
+  not evidence an utlägg at all.
+- `reimbursement_status` — whether the debt to the anställd is still
+  owed (`unpaid`) or has been settled (`paid`). Exists so that, when
+  reglering happens via the next `Payslip` (§4.8) rather than a direct
+  payout, tooling can confirm the payout was booked against the debt
+  account rather than kostnadsförd a second time as lön.
+
+**Required when applicable**:
+
+- `vat_amount` — the utlägg's mervärdesskatt content, when the
+  underlying cost carried Swedish VAT and the moms was lyft
+  separately in the kontering.
+- `reimbursement_date` — the regleringsdag: the date the debt was
+  actually settled. Required once `reimbursement_status` is `paid`,
+  since the settling `Verification`'s `transaction_date` (§4.1.1)
+  SHOULD equal this date.
+- `currency` / `exchange_rate` — for an utlägg paid in a foreign
+  currency, e.g. kost och logi i utlandet: the original currency and
+  the exchange rate used at booking.
+
+**Recommended**:
+
+- `verification` — the Concept ID of the `Verification` (§4.1) that
+  books the utlägg's cost and the resulting debt to the anställd, at
+  the time the outlay occurred.
+- `payslip` — the Concept ID of the `Payslip` (§4.8) that reimburses
+  this utlägg as one of its lönearter, when reglering happens that
+  way rather than through a separate direct payout.
+
+#### 4.10.2 Conventional body sections
+
+In addition to the OKF §4.2 conventional headings, `Expense` concepts
+SHOULD use:
+
+| Heading           | Purpose                                                                              |
+| ------------------ | --------------------------------------------------------------------------------------- |
+| `# Receipt`       | The kvitto: what it shows, whose name it is issued to, and where it is archived.       |
+| `# Reimbursement` | How and when the debt to the anställd was (or will be) reglerad, and against which account/Verification/Payslip. |
+| `# Citations`     | As OKF §8 — the legal or documentary basis, if not obvious from context.                 |
+
+#### 4.10.3 Example
+
+```markdown
+---
+type: Expense
+employee: "employees/anna-svensson"
+expense_date: 2026-06-03
+description: Kontorsmaterial inköpt med privata medel till kontoret
+amount: 450.00 SEK
+vat_amount: 90.00 SEK
+resource: "file:///arkiv/kvitton/2026/anna-svensson-kontorsmaterial-2026-06-03.pdf"
+reimbursement_status: paid
+reimbursement_date: 2026-06-25
+verification: "verifications/2026/000178"
+payslip: "payslips/2026/anna-svensson-2026-06"
+title: Utlägg, kontorsmaterial — Anna Svensson
+timestamp: 2026-06-03T14:00:00Z
+---
+
+[Anna Svensson](/employees/anna-svensson.md) lade ut 450.00 kr privat
+för kontorsmaterial till kontoret 2026-06-03. Kostnaden och momsen
+bokfördes samma dag som en skuld till Anna. Skulden reglerades
+2026-06-25 som en rad på hennes lönespecifikation för juni 2026 — se
+[payslips/2026/anna-svensson-2026-06](/payslips/2026/anna-svensson-2026-06.md).
+
+# Receipt
+
+Kvitto från Kontorsvaruhuset AB, utställt på Anna Svensson, arkiverat
+under `/arkiv/kvitton/2026/anna-svensson-kontorsmaterial-2026-06-03.pdf`.
+
+# Reimbursement
+
+Skulden bokades upp 2026-06-03 mot
+[verifications/2026/000178](/verifications/2026/000178.md). Reglerad
+2026-06-25 som raden "Utlägg, kontorsmaterial" (450.00 kr) på
+lönespecifikationen för juni 2026, mot skuldkontot — inte kostnadsförd
+en andra gång som lön.
+
+# Citations
+
+[1] Bokföringslagen (BFL) 5 kap. 6–7 §§
+```
+
+---
+
 ## 6. Conformance
 
 A bundle is conformant with this profile if it satisfies OKF v0.1
@@ -1449,12 +1623,19 @@ conformance (OKF §9) **and**, additionally:
   the bookkeeping system uses, with the VAT Declaration Field populated
   for every account whose transactions map to a field of the periodic
   mervärdesskattedeklaration (§4.9.1).
+- every concept with `type: Expense` has all fields listed as
+  "Required" in §4.10.1 — including `resource`, promoted from OKF's
+  generic Recommended — plus `vat_amount` whenever the utlägg carried
+  Swedish VAT, `reimbursement_date` whenever `reimbursement_status` is
+  `paid`, and `currency`/`exchange_rate` whenever the utlägg was paid
+  in a foreign currency (§4.10.1).
 
 As with OKF itself (OKF §9), consumers MUST NOT reject a
 `Verification`, `Fiscal Year`, `Supplier`, `Supplier Invoice`,
-`Customer`, `Customer Invoice`, `Employee`, `Payslip`, or `Chart of
-Accounts` concept over missing "Recommended" fields — only over
-missing "Required" (or applicable "Required when applicable") fields.
+`Customer`, `Customer Invoice`, `Employee`, `Payslip`, `Chart of
+Accounts`, or `Expense` concept over missing "Recommended" fields —
+only over missing "Required" (or applicable "Required when
+applicable") fields.
 
 ---
 
@@ -1473,11 +1654,13 @@ Invoice`'s `received_date`/`sequence_number` and `Customer`'s
 `tax_table` exception, Lag (1991:586) om särskild inkomstskatt för
 utomlands bosatta (SINK); for `Payslip`'s ersättnings- and
 skatteavdrag fields (§4.8), the same Bokföringslag provisions as §4.1
-and the same Skatteförfarandelag provisions as §4.7; and for `Chart of
+and the same Skatteförfarandelag provisions as §4.7; for `Chart of
 Accounts` (§4.9), the Bokföringslag's systemdokumentation requirement
 for the concept type's existence, and the Mervärdesskattelag together
 with the Skatteförfarandelag's periodic skattedeklaration provisions
-for the VAT-declaration-field mapping itself:
+for the VAT-declaration-field mapping itself; and for `Expense`'s
+kvitto and reimbursement fields (§4.10), the same Bokföringslag
+provisions as §4.1:
 
 [1] BFL 1 kap. 2 §, 6–7 p. — definitions of *affärshändelse* and
     *verifikation*.
@@ -1526,3 +1709,9 @@ for the VAT-declaration-field mapping itself:
      is set by Skatteverket's blankett for the mervärdesskattedeklaration,
      not by a paragraf in ML or SFL, so — like [6] — this citation is
      at the chapter/form level rather than a specific paragraf.
+[15] BFL 5 kap. 6–7 §§ — same provision as [2]: an utlägg's kvitto is
+     the handling that legat till grund för affärshändelsen, and its
+     absence is why an unsubstantiated utlägg fails to evidence a real
+     verifikationsunderlag, as illustrated by a bookkeeping guide's own
+     worked example of Skatteverket requalifying an undocumented utlägg
+     as taxable lön.
