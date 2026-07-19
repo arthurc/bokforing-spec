@@ -18,13 +18,42 @@ OKF v0.1 deliberately requires only a `type` field (OKF §4.1) and
 leaves everything else to the producer. That is correct for a
 general-purpose format, but accounting is not general-purpose: Swedish
 law dictates exactly what information must accompany every recorded
-business event. This profile takes the "producer-defined keys" escape
-hatch that OKF explicitly allows (OKF §4.1, "Extensions") and uses it
-to promote a small set of legally mandated fields from optional to
-**required**, for two concept types: `Verification` and `Fiscal Year`.
+business event, who its parties are, and what must periodically be
+declared from it. This profile takes the "producer-defined keys" escape
+hatch that OKF explicitly allows (OKF §4.1, "Extensions") and uses it to:
 
-The legal source for these requirements is the Bokföringslag (BFL).
-See [Citations](#6-citations) for the specific statutory references.
+- name a fixed set of concept types for the accounting domain —
+  `Organization`, `Verification`, `Fiscal Year`, `Supplier`, `Supplier
+  Invoice`, `Customer`, `Customer Invoice`, `Employee`, `Payslip`,
+  `Chart of Accounts`, `Expense`, `Employer Tax Declaration`, and
+  `VAT Declaration` (§4.1–§4.13);
+- promote, per type, the legally mandated fields from optional to
+  **required** (§4.x.1); and
+- require, per type, the body sections that carry the per-row data
+  frontmatter cannot express — a verifikation's konteringar, a
+  räkenskapsårs balanser, a kontoplans konton, a deklarations rutor and
+  individuppgifter (§4.x.2).
+
+Those types are not a flat list. The `Verification` (§4.2) is the
+grundmaterial BFL requires for every affärshändelse; the rest exist
+around it. `Organization` (§4.1) is the company whose bokföring it
+belongs to, and `Fiscal Year` (§4.3) the räkenskapsår it falls in.
+`Supplier` (§4.4), `Customer` (§4.6), and `Employee` (§4.8) hold the
+master data of the motpart it names. `Supplier Invoice` (§4.5),
+`Customer Invoice` (§4.7), `Payslip` (§4.9), and `Expense` (§4.11) hold
+the underlying document (bokföringsunderlag) it rests on. `Chart of
+Accounts` (§4.10) names the accounts it posts to. And `Employer Tax
+Declaration` (§4.12) and `VAT Declaration` (§4.13) are the deklarationer
+derived by aggregating verifikationer over a redovisningsperiod.
+
+The primary legal source for these requirements is the Bokföringslag
+(BFL); the moms-, fakturainnehålls-, löne-, and deklarationsrelaterade
+requirements additionally draw on the Mervärdesskattelag (ML), the
+Skatteförfarandelag (SFL), the Årsredovisningslag (ÅRL), and
+Bokföringsnämndens allmänna råd (BFNAR), with fält- och rutanumrering
+taken from Skatteverkets blanketter and arbetsställenummer from
+Statistiska centralbyråns Företagsregister. See
+[Citations](#6-citations) for the specific references.
 
 ---
 
@@ -124,22 +153,39 @@ In addition to the terms defined in OKF §2, this profile uses:
   reimbursement status explicit and checkable.
 - **Kontoplan (Chart of Accounts)** — a bookkeeping system's complete
   list of accounts, each account's number and name, forming part of
-  the systemdokumentation BFL 5 kap. 1 § requires (§7 [13]). This
+  the systemdokumentation BFL 5 kap. 1 § requires (§6 [13]). This
   profile's `Chart of Accounts` concept type (§4.10) represents the
   kontoplan bundle-wide, one file per bundle rather than per
   räkenskapsår or per account — mirroring how `Supplier` (§4.4),
   `Customer` (§4.6), and `Employee` (§4.8) hold bundle-wide master data
   rather than duplicating it per fiscal year, but unlike them, as a
   single file rather than one file per entity.
-- **Momsdeklaration** — the periodic mervärdesskattedeklaration a
-  VAT-registered company files with Skatteverket, reporting utgående
-  and ingående moms and other VAT-relevant amounts per
-  redovisningsperiod into a fixed set of numbered fält (rutor) that
-  Skatteverket's blankett defines (SFL 26 kap.). This profile's `Chart
-  of Accounts` concept type (§4.10) records, per account, which of
-  these fält (if any) the account's postings map into, so that a
-  momsdeklaration can be derived by summing `Verification` (§4.2)
-  postings per account and rolling them up via that mapping.
+- **Momsdeklaration (VAT Declaration)** — the periodic
+  mervärdesskattedeklaration a VAT-registered company files with
+  Skatteverket, reporting utgående and ingående moms and other
+  VAT-relevant amounts per redovisningsperiod into a fixed set of
+  numbered fält (rutor) that Skatteverket's blankett defines (SFL 26
+  kap.). This profile's `Chart of Accounts` concept type (§4.10)
+  records, per account, which of these fält (if any) the account's
+  postings map into, so that a momsdeklaration can be derived by
+  summing `Verification` (§4.2) postings per account and rolling them
+  up via that mapping; this profile's `VAT Declaration` concept type
+  (§4.13) is the artefakt that derivation produces — the declaration as
+  assembled, avstämd against the bokföring, arkiverad, and lämnad to
+  Skatteverket. The mapping is *how* a declaration is created and
+  checked; the `VAT Declaration` is *what is filed and kept*.
+- **Redovisningsmetod** — which händelse makes moms redovisningsbar in a
+  given redovisningsperiod. Under **fakturametoden**
+  (faktureringsmetoden), momsen redovisas när kund- och
+  leverantörsfakturor skickas eller mottas. Under **kontantmetoden**
+  (bokslutsmetoden), utgående moms redovisas först i den
+  redovisningsperiod då betalning tas emot and ingående moms lyfts i den
+  period då betalningen görs — with the further rule that vid
+  räkenskapsårets utgång momsen även ska redovisas på obetalda fordringar
+  och skulder. A company applies one metod, recorded once bundle-wide on
+  the `Organization` concept (§4.1); each `VAT Declaration` (§4.13)
+  restates it for the period it covers, since the metod decides which
+  affärshändelser fall into that redovisningsperiod at all.
 - **Arbetsgivardeklaration (Employer Tax Declaration)** — the monthly
   report an arbetsgivare files with Skatteverket for one
   redovisningsperiod, declaring utbetalda ersättningar, gjorda
@@ -185,9 +231,9 @@ An `Organization` concept represents the company itself: the juridiska
 person (aktiebolag, enskild firma, or other) whose bokföring the bundle
 documents. It holds the company's own master data — its identitet
 (organisationsnummer, firma), skatteregistreringar
-(momsregistreringsnummer, F-skatt), teknisk kontaktperson for dealings
-with Skatteverket, and arbetsställen — that other concept types otherwise
-have to repeat or leave implicit. In particular, the arbetsgivardeklaration
+(momsregistreringsnummer, F-skatt), redovisningsmetod för moms, teknisk
+kontaktperson for dealings with Skatteverket, and arbetsställen — that
+other concept types otherwise have to repeat or leave implicit. In particular, the arbetsgivardeklaration
 an `Employer Tax Declaration` (§4.12) represents must carry the
 arbetsgivarens organisationsnummer (Skatteverkets fältkod FK201) and, in
 each individuppgift, the betalningsmottagarens arbetsställenummer (FK060)
@@ -220,6 +266,7 @@ organization_number: <string>          # REQUIRED
 vat_number: <string>                   # REQUIRED when applicable
 workplace_number: <string>             # REQUIRED when applicable
 f_tax_status: approved | not_approved  # Recommended
+accounting_method: fakturametoden | kontantmetoden  # Recommended
 registered_office: <string>            # Recommended
 postal_address: <string>               # Recommended
 workplace_address: <string>            # Recommended
@@ -270,6 +317,14 @@ kap. (individuppgiftens arbetsställenummer):
   (`not_approved`), mirroring `Supplier.f_tax_status` (§4.4.1). Relevant
   because a company invoicing for tjänster states its innehav av F-skatt
   on its kundfakturor.
+- `accounting_method` — the company's redovisningsmetod för moms (§3):
+  `fakturametoden`, where momsen redovisas när fakturor skickas eller
+  mottas, or `kontantmetoden`, where den redovisas när betalning sker.
+  Bundle-wide master data for the same reason `vat_number` is — a company
+  applies one metod, not one per period — and recorded here so each
+  `VAT Declaration` (§4.13) can be checked against the metod the company
+  actually applies. Recommended rather than required because a company
+  that is not momsregistrerad has no redovisningsmetod to state.
 - `registered_office` — the bolagets säte (registered office / kommun), as
   stated in the company's registration and årsredovisning.
 - `postal_address` — the company's postal/correspondence address, when it
@@ -319,6 +374,7 @@ organization_number: "556789-0123"
 vat_number: "SE556789012301"
 workplace_number: "12345678"
 f_tax_status: approved
+accounting_method: fakturametoden
 registered_office: Storstad
 postal_address: Storgatan 1, 111 22 Storstad
 workplace_address: Storgatan 1, 111 22 Storstad
@@ -329,10 +385,12 @@ timestamp: 2026-07-01T09:00:00Z
 ---
 
 [Company AB](https://company.example/), org.nr 556789-0123. Bolagets egen
-masterdata: identitet, skatteregistreringar, teknisk kontaktperson för
-deklarationer, och arbetsställen. Organisationsnumret här är samma FK201
-som varje [arbetsgivardeklaration](/employer-tax-declarations/) (§4.12)
-rapporterar.
+masterdata: identitet, skatteregistreringar, redovisningsmetod för moms,
+teknisk kontaktperson för deklarationer, och arbetsställen.
+Organisationsnumret här är samma FK201 som varje
+[arbetsgivardeklaration](/employer-tax-declarations/) (§4.12) rapporterar,
+och redovisningsmetoden (fakturametoden) är den varje
+[momsdeklaration](/vat-declarations/) (§4.13) tillämpar.
 
 # Arbetsställen
 
@@ -1516,7 +1574,11 @@ kap.); Skatteverket's blankett for that declaration divides these
 amounts into a fixed set of numbered fält (rutor). A `Chart of
 Accounts` concept lets tooling derive that declaration automatically,
 by summing `Verification` postings per account and rolling the sums up
-through this account-to-fält mapping.
+through this account-to-fält mapping. The declaration so derived is then
+recorded as a `VAT Declaration` concept (§4.13), which is what gets
+arkiverad and lämnad to Skatteverket: this mapping stays the means of
+*producing* and re-checking a declaration, not a substitute for the
+filed artefakt itself.
 
 Unlike `Supplier` (§4.4), `Customer` (§4.6), and `Employee` (§4.8) —
 which are also bundle-wide master data, but one file per entity — a
@@ -1805,15 +1867,17 @@ betalningsmottagare — each individuppgift corresponding to one
 `Payslip` (§4.9) — and the whole declaration reconciles against the
 löneutbetalning `Verification`(s) (§4.2) that booked the month's lön.
 
-Unlike the momsdeklaration, which §4.10 lets tooling derive by summing
-`Verification` postings through the `Chart of Accounts`' account-to-fält
-mapping, an arbetsgivardeklaration has no equivalent bundle-wide mapping
-to roll up through: its individuppgifter are per-anställd and already
-materialized as `Payslip` concepts (§4.9). This profile therefore
-represents the arbetsgivardeklaration as a stored concept that records
-the period's assembled huvuduppgift and individuppgifter — and, in its
-body, how they were derived — rather than as a mapping from which they
-would be recomputed.
+Like the momsdeklaration (§4.13), an arbetsgivardeklaration is
+represented as a stored concept: it records the period's assembled
+huvuduppgift and individuppgifter — and, in its body, how they were
+derived. What differs is where the derivation comes from. A
+momsdeklaration has a bundle-wide account-to-fält mapping to roll up
+through, held in the `Chart of Accounts` (§4.10), so tooling can
+recompute it from `Verification` postings alone. An
+arbetsgivardeklaration has no equivalent mapping: its individuppgifter
+are per-anställd and already materialized as `Payslip` concepts (§4.9),
+so its `# Derivation` section (§4.12.2) traces back to those concepts
+rather than to a kontoplan.
 
 Concept ID convention: place employer tax declarations under an
 `employer-tax-declarations/` subdirectory, one file per
@@ -1995,7 +2059,303 @@ FK487 mot de sociala avgifterna i
 
 ---
 
-## 6. Conformance
+### 4.13 `VAT Declaration`
+
+A `VAT Declaration` concept represents exactly one momsdeklaration: the
+periodic mervärdesskattedeklaration a momsregistrerat företag must file
+with Skatteverket for one redovisningsperiod, reporting the period's
+momspliktiga försäljning, utgående moms, momspliktiga inköp med omvänd
+betalningsskyldighet, momsfri försäljning, and avdragsgill ingående moms
+(SFL 26 kap.). A momsregistrerat företag files one for every period even
+when there is no moms to declare.
+
+It stands in the same relation to `Chart of Accounts` (§4.10) that
+`Employer Tax Declaration` (§4.12) stands in to `Payslip` (§4.9), but
+built the other way round. The `Chart of Accounts`' account-to-fält
+mapping is what lets tooling *create* a momsdeklaration — summing
+`Verification` (§4.2) postings per account and rolling the sums up into
+the numbered fält of Skatteverket's blankett. A `VAT Declaration` is the
+artefakt that creation produces: the declaration as assembled for a
+specific period, avstämd against the bokföring, arkiverad, and lämnad to
+Skatteverket. The mapping can be re-run at any time and will yield the
+same fält; it cannot record that a declaration was in fact filed, on what
+date, for what belopp, or that it was later rättad. That is what this
+concept type is for.
+
+A filed momsdeklaration is therefore never edited in place. When an
+amount turns out to be wrong, producers file a rättelse: a new `VAT
+Declaration` concept for the same `period`, pointing back at the one it
+supersedes via `replaces`, while the superseded concept's `status`
+becomes `corrected`. The bundle keeps both, so the filing history of a
+period stays readable.
+
+Concept ID convention: place VAT declarations under a
+`vat-declarations/` subdirectory, one file per redovisningsperiod, e.g.
+`vat-declarations/2026-02.md` (månad), `vat-declarations/2026-Q1.md`
+(kvartal), or `vat-declarations/2026.md` (beskattningsår). Producers
+SHOULD name the file after the `period` so the declaration for a given
+period can be located without opening it, and SHOULD suffix a rättelse
+with its ordinal, e.g. `vat-declarations/2026-02-rattelse-1.md`, so it
+does not collide with the declaration it supersedes.
+
+#### 4.13.1 Frontmatter
+
+```yaml
+---
+type: VAT Declaration                # REQUIRED (OKF §4.1)
+period: <YYYY-MM | YYYY-Qn | YYYY>   # REQUIRED
+period_type: månad | kvartal | beskattningsår  # REQUIRED
+organization_number: <string>        # REQUIRED
+vat_number: <string>                 # REQUIRED
+status: draft | final | corrected    # REQUIRED
+accounting_method: fakturametoden | kontantmetoden  # REQUIRED
+total_output_vat: <decimal> <ISO 4217 code>  # REQUIRED
+total_input_vat: <decimal> <ISO 4217 code>   # REQUIRED
+vat_to_pay: <decimal> <ISO 4217 code>        # REQUIRED
+submitted_date: <ISO 8601 date>      # REQUIRED when status: final | corrected
+replaces: <Concept ID>               # REQUIRED when the declaration is a rättelse
+filing_deadline: <ISO 8601 date>     # Recommended
+verifications: [<Concept ID>, …]     # Recommended
+chart_of_accounts: <Concept ID>      # Recommended
+title: <Optional display name>       # Recommended (OKF §4.1)
+description: <Optional one-line summary>  # Recommended (OKF §4.1)
+resource: <Optional URI to source document>  # Recommended (OKF §4.1)
+tags: [<tag>, …]                     # Optional (OKF §4.1)
+timestamp: <ISO 8601 datetime>       # Recommended (OKF §4.1)
+---
+```
+
+The generic OKF fields (`type`, `title`, `description`, `resource`,
+`tags`, `timestamp`) keep their OKF §4.1 meaning.
+
+**Required**, per SFL 26 kap. and Skatteverkets blankett för
+mervärdesskattedeklaration:
+
+- `period` — the redovisningsperiod the declaration covers, written to
+  match `period_type`: `YYYY-MM` for a kalendermånad, `YYYY-Qn` for a
+  kalenderkvartal, `YYYY` for ett helt beskattningsår.
+- `period_type` — whether the redovisningsperiod is a kalendermånad
+  (`månad`), a kalenderkvartal (`kvartal`), or hela beskattningsåret
+  (`beskattningsår`). Which of these a company may use depends on its
+  beskattningsunderlag: helårsredovisning is open only below 1 mkr,
+  kvartalsredovisning below 40 mkr, and a company above 40 mkr must
+  redovisa per månad. The period type also governs the
+  deklarationstidpunkt, so it cannot be inferred from `period` alone —
+  `2026-02` is a valid month for a company on either månads- or
+  kvartalsredovisning.
+- `organization_number` — the company's organisationsnummer, the same one
+  recorded once, bundle-wide, in the `Organization` concept (§4.1).
+- `vat_number` — the company's momsregistreringsnummer, likewise from the
+  `Organization` concept (§4.1). Required here, rather than "required when
+  applicable" as in §4.1.1, because only a momsregistrerat företag files a
+  momsdeklaration at all: a declaration without one describes a company
+  that had no duty to file it.
+- `status` — whether the declaration is still being assembled (`draft`),
+  has been lämnad to Skatteverket (`final`), or has been lämnad and
+  subsequently superseded by a rättelse (`corrected`). Extends the
+  `draft`/`final` pair used by `Employer Tax Declaration.status` (§4.12.1)
+  and `Fiscal Year.status` (§4.3.1) with the third state a filed
+  momsdeklaration can reach.
+- `accounting_method` — the redovisningsmetod (§3) applied for this
+  period: `fakturametoden` or `kontantmetoden`. Restates, per declaration,
+  the metod the `Organization` concept (§4.1.1) records bundle-wide,
+  because the metod decides which affärshändelser belong to this
+  redovisningsperiod at all — under kontantmetoden an obetald
+  leverantörsfaktura contributes nothing until it is paid, whereas under
+  fakturametoden it contributes on receipt. A reader cannot check the
+  period's avgränsning without it.
+- `total_output_vat` — the period's summa utgående moms, including
+  currency: fält 10–12 (försäljning), 30–32 (inköp med omvänd
+  betalningsskyldighet), and 60–62 (import) taken together.
+- `total_input_vat` — the period's ingående moms att dra av (fält 48),
+  including currency.
+- `vat_to_pay` — moms att betala eller få tillbaka (fält 49), including
+  currency: `total_output_vat` minus `total_input_vat`. A negative value
+  is a momsfordran — moms att få tillbaka — rather than an error. Fält 49
+  is filled in for every period, so producers MUST state it even when it
+  is zero.
+
+**Required when applicable**:
+
+- `submitted_date` — the date the declaration was lämnad to Skatteverket.
+  Required once `status` is `final` or `corrected`, mirroring
+  `Employer Tax Declaration.submitted_date` (§4.12.1). It SHOULD fall on
+  or before `filing_deadline`; momsen ska dessutom vara inbetald och
+  bokförd på skattekontot senast samma dag.
+- `replaces` — the Concept ID of the `VAT Declaration` this one rättar.
+  Required whenever the declaration is a rättelse rather than a period's
+  first filing. The superseded concept SHOULD in turn carry
+  `status: corrected`, so the relation is readable from either end.
+
+**Recommended**:
+
+- `filing_deadline` — the date by which the declaration must be lämnad.
+  Unlike `Employer Tax Declaration.filing_deadline` (§4.12.1), this is
+  *not* derivable from the period alone: it follows from `period_type`
+  together with whether the company's beskattningsunderlag exceeds 40
+  mkr, which this profile does not record anywhere. For månads- and
+  kvartalsredovisning the deadline is normally den 12:e i den andra
+  månaden efter redovisningsperioden (den 17:e for the January and August
+  deadlines); a company above 40 mkr instead files den 26:e i månaden
+  efter perioden (den 27:e in December); helårsredovisning falls den 12
+  maj året efter beskattningsårets utgång, or den 26 februari for a
+  company with EU-handel. Producers SHOULD populate the field so tooling
+  can check the deadline without reconstructing which of these cases
+  applies.
+- `verifications` — the Concept IDs of the `Verification` concepts (§4.2)
+  the declaration is avstämd against: at minimum the omföring that emptied
+  the moms accounts into momsredovisningskontot (§4.13.2, `# Avstämning`).
+- `chart_of_accounts` — the Concept ID of the `Chart of Accounts` concept
+  (§4.10) whose account-to-fält mapping the fält were rolled up through,
+  so a reader can re-run the derivation against the same mapping. A bundle
+  has exactly one (§4.10), but naming it makes the dependency explicit
+  rather than implied.
+
+**Rutor**, per Skatteverkets blankett för mervärdesskattedeklaration:
+
+The declaration's fält are per-fält data, not a single scalar, so — like
+an `Employer Tax Declaration`'s individuppgifter (§4.12.1) or a `Chart of
+Accounts`' accounts (§4.10.1) — they belong in the body as a table, not in
+frontmatter:
+
+- A `VAT Declaration` concept MUST include a `# Rutor` body section
+  (§4.13.2), with one row per ifyllt fält: fältnummer, the fält's
+  beskrivning, and belopp. The three frontmatter totals are aggregates and
+  do not stand in for it — fält 05–08 (momspliktig försäljning) and 35–42
+  (försäljning undantagen från moms) carry beskattningsunderlag rather
+  than moms, so they contribute to no total yet must still be declared. A
+  declaration stating only `vat_to_pay` does not reflect the blankett, for
+  the same reason §4.12.1 rejects an arbetsgivardeklaration stating only
+  period totals.
+- Fält belopp are stated as they are declared: öresbelopp avrundas nedåt
+  ("öretal bortfaller"), which is why the fält in `# Rutor` may differ by
+  ören from the exact kontosaldon the `# Derivation` section (§4.13.2)
+  sums. Producers SHOULD say where that differens was booked — typically
+  konto 3740, öresutjämning.
+
+**Avstämning**, per BFL 5 kap. 1 § (systemdokumentation) and the
+kontoplan's moms accounts (§4.10):
+
+- A `VAT Declaration` concept MUST include an `# Avstämning` body section
+  (§4.13.2), recording the omföring that reconciles the declaration to the
+  bokföring: the utgående-moms accounts (261x–263x) and ingående-moms
+  account (264x) tömda for the period, and the differens between them
+  booked to momsredovisningskontot — 2650 for a momsskuld, or 1650 when
+  the company regularly carries a momsfordran or holds one at bokslutet.
+  Without it, the fält in `# Rutor` assert amounts that no `Verification`
+  (§4.2) accounts for, and the declaration floats free of the löpande
+  bokföring that BFL 5 kap. 1 § requires it to connect back to. Producers
+  SHOULD perform the avstämning before the next redovisningsperiod
+  begins, so a balansrapport for the period shows nollställda moms
+  accounts and a single belopp on 2650 or 1650.
+
+#### 4.13.2 Conventional body sections
+
+In addition to the OKF §4.2 conventional headings, `VAT Declaration`
+concepts SHOULD use:
+
+| Heading         | Purpose                                                                                                                              |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `# Period`      | The redovisningsperiod, its period_type, the deklarationstidpunkt, and the redovisningsmetod governing the period's avgränsning.        |
+| `# Rutor`       | One row per ifyllt fält of Skatteverkets blankett: fältnummer, beskrivning, belopp. REQUIRED.                                          |
+| `# Derivation`  | Which accounts rolled up into which fält, via the `Chart of Accounts`' (§4.10) account-to-fält mapping.                                |
+| `# Avstämning`  | The omföring of 261x–263x and 264x to momsredovisningskontot (2650/1650), the öresavrundning, and the `Verification` that booked it. REQUIRED. |
+| `# Rättelse`    | When the declaration rättar an earlier one: what was wrong, and what changed. Present whenever `replaces` is set.                      |
+| `# Citations`   | As OKF §8 — the legal or documentary basis, if not obvious from context.                                                              |
+
+#### 4.13.3 Example
+
+```markdown
+---
+type: VAT Declaration
+period: "2026-02"
+period_type: månad
+organization_number: "556789-0123"
+vat_number: "SE556789012301"
+status: final
+accounting_method: fakturametoden
+total_output_vat: 32000.00 SEK
+total_input_vat: 21500.00 SEK
+vat_to_pay: 10500.00 SEK
+submitted_date: 2026-04-10
+filing_deadline: 2026-04-13
+verifications: ["verifications/2026/000144"]
+chart_of_accounts: "chart-of-accounts"
+title: Momsdeklaration — februari 2026
+timestamp: 2026-04-10T14:30:00Z
+---
+
+Momsdeklaration för Company AB (org.nr 556789-0123, momsreg.nr
+SE556789012301) avseende redovisningsperioden februari 2026. Härledd ur
+periodens verifikationer via kontoplanens fältmappning
+([chart-of-accounts](/chart-of-accounts.md), §4.10) och lämnad till
+Skatteverket 2026-04-10.
+
+# Period
+
+Redovisningsperiod 2026-02 (2026-02-01 – 2026-02-28), månadsredovisning.
+Deklarationstidpunkt: den 12:e i den andra månaden efter perioden, dvs
+2026-04-12 — en söndag, varför fristen infaller nästkommande vardag
+2026-04-13. Momsen ska vara inbetald och bokförd på skattekontot senast
+samma dag.
+
+Företaget tillämpar fakturametoden: moms redovisas när kund- och
+leverantörsfakturor skickas respektive mottas, inte när betalning sker.
+Obetalda fakturor utställda eller mottagna i februari ingår därför i
+denna period.
+
+# Rutor
+
+| Fält | Beskrivning                                              | Belopp         |
+| ---- | -------------------------------------------------------- | -------------: |
+| 05   | Momspliktig försäljning som inte ingår i fält 06, 07, 08  | 120 000 SEK    |
+| 10   | Utgående moms 25 %                                       | 30 000 SEK     |
+| 21   | Inköp av tjänster från annat EU-land, huvudregeln         | 8 000 SEK      |
+| 30   | Utgående moms 25 % på inköp i fält 20–24                 | 2 000 SEK      |
+| 48   | Ingående moms att dra av                                 | 21 500 SEK     |
+| 49   | Moms att betala eller få tillbaka                        | 10 500 SEK     |
+
+# Derivation
+
+Fälten är summerade per konto och upprullade via kontoplanens *VAT
+Declaration Field*-mappning ([chart-of-accounts](/chart-of-accounts.md)):
+
+| Konto  | Kontonamn                                    | Fält | Saldo februari |
+| ------ | -------------------------------------------- | ---- | --------------: |
+| 3001   | Försäljning inom Sverige, 25 % moms          | 05   | 120 000.00 SEK  |
+| 2611   | Utgående moms på försäljning inom Sverige    | 10   | 30 000.00 SEK   |
+| 4535   | Inköp av tjänster från annat EU-land, 25 %   | 21   | 8 000.00 SEK    |
+| 2614   | Utgående moms omvänd skattskyldighet, 25 %   | 30   | 2 000.00 SEK    |
+| 2640   | Ingående moms                                | 48   | 21 500.00 SEK   |
+
+Fält 49 = (30 000 + 2 000) − 21 500 = 10 500 SEK att betala.
+
+# Avstämning
+
+Momskontona tömdes per 2026-02-28, innan mars påbörjades. Utgående moms
+[2611] 30 000 kr och [2614] 2 000 kr debiterades, ingående moms [2640]
+21 500 kr krediterades, och mellanskillnaden 10 500 kr bokfördes som
+momsskuld på [2650] i väntan på betalning — se
+[verifications/2026/000144](/verifications/2026/000144.md). Efter
+omföringen är 2611, 2614 och 2640 nollställda i balansrapporten för
+perioden.
+
+Inga öresdifferenser uppstod denna period; hade de gjort det skulle de
+ha bokförts mot öresutjämning [3740], eftersom öretal bortfaller i
+momsdeklarationen.
+
+# Citations
+
+[1] Skatteförfarandelagen (SFL) 26 kap.; Mervärdesskattelagen (ML)
+[2] Bokföringslagen (BFL) 5 kap. 1 § — avstämningen mot den löpande
+    bokföringen
+[3] Skatteverket, "Fylla i momsdeklarationen":
+    https://www.skatteverket.se/foretag/moms/deklareramoms/fyllaimomsdeklarationen.4.3a2a542410ab40a421c80004214.html
+```
+
+---
+
+## 5. Conformance
 
 A bundle is conformant with this profile if it satisfies OKF v0.1
 conformance (OKF §9) **and**, additionally:
@@ -2056,17 +2416,24 @@ conformance (OKF §9) **and**, additionally:
   `status` is `final`; includes a `# Huvuduppgift` body section
   (§4.12.2); and includes an `# Individuppgift` body section (§4.12.2)
   with one row per betalningsmottagare (§4.12.1).
+- every concept with `type: VAT Declaration` has all fields listed as
+  "Required" in §4.13.1, plus `submitted_date` whenever `status` is
+  `final` or `corrected` and `replaces` whenever the declaration rättar an
+  earlier one; includes a `# Rutor` body section (§4.13.2) with one row
+  per ifyllt fält, fält 49 among them in every period; and includes an
+  `# Avstämning` body section recording the omföring to
+  momsredovisningskontot (§4.13.1).
 
 As with OKF itself (OKF §9), consumers MUST NOT reject a
 `Verification`, `Fiscal Year`, `Supplier`, `Supplier Invoice`,
 `Customer`, `Customer Invoice`, `Employee`, `Payslip`, `Chart of
-Accounts`, `Expense`, `Employer Tax Declaration`, or `Organization`
-concept over missing "Recommended" fields — only over missing "Required"
-(or applicable "Required when applicable") fields.
+Accounts`, `Expense`, `Employer Tax Declaration`, `VAT Declaration`, or
+`Organization` concept over missing "Recommended" fields — only over
+missing "Required" (or applicable "Required when applicable") fields.
 
 ---
 
-## 7. Citations
+## 6. Citations
 
 The requirements in §4.2, §4.4, §4.5, §4.6, and §4.7 are drawn directly
 from the Bokföringslag (BFL, SFS 1999:1078); for `Supplier`'s and
@@ -2091,7 +2458,12 @@ provisions as §4.2; and for `Employer Tax Declaration`'s huvuduppgift
 and individuppgift fields (§4.12), the Skatteförfarandelag's
 arbetsgivardeklaration provisions (SFL 26 kap., the same chapter as
 §4.8's AGI reference) together with Skatteverkets fältkoder for the
-declaration's blankett; and for `Organization` (§4.1), the same
+declaration's blankett; for `VAT Declaration` (§4.13), the
+Mervärdesskattelag together with the Skatteförfarandelag's periodic
+skattedeklaration provisions — the same pairing as §4.10's fält mapping,
+here as the basis for the filed declaration itself — with the fält
+numbering and the deklarationstidpunkter taken from Skatteverkets
+blankett and vägledning; and for `Organization` (§4.1), the same
 Skatteförfarandelag arbetsgivardeklaration provisions (SFL 26 kap.) for
 the organisationsnummer (FK201) and arbetsställenummer (FK060), together
 with Statistiska centralbyråns Företagsregister for the arbetsställenummer
@@ -2174,3 +2546,30 @@ with Statistiska centralbyråns Företagsregister for the arbetsställenummer
      with [6], [14], and [17], the numbering is set by an authority's
      register/blankett rather than by a paragraf in law, so this citation
      is at the register level.
+[20] ML, together with SFL 26 kap. — same provisions as [14], viewed here
+     as the basis for the `VAT Declaration` concept type as a whole: the
+     duty of a momsregistrerat företag to lämna a mervärdesskatte-
+     deklaration for every redovisningsperiod, even when there is no moms
+     to declare; the redovisningsperiod being en kalendermånad, ett
+     kalenderkvartal, or hela beskattningsåret according to the company's
+     beskattningsunderlag (1 mkr and 40 mkr being the thresholds); the
+     redovisningsmetod (fakturametoden or kontantmetoden) governing when
+     utgående and ingående moms become redovisningsbara; and the
+     deklarationstidpunkt per period type.
+[21] Skatteverket, "Fylla i momsdeklarationen" — the fält (rutor) of the
+     blankett and their grouping: A. Momspliktig försäljning eller uttag
+     (05–08), B. Utgående moms på försäljning eller uttag (10–12),
+     C. Momspliktiga inköp vid omvänd betalningsskyldighet (20–24),
+     D. Utgående moms på inköp i fält 20–24 (30–32), E. Försäljning m.m.
+     som är undantagen från moms (35–42), F. Ingående moms (48),
+     G. Moms att betala eller få tillbaka (49), and H. Import (50,
+     60–62). As with [6], [14], and [17], the fält numbering is set by
+     Skatteverkets blankett rather than by a paragraf in ML or SFL, so
+     this citation is at the form level.
+     https://www.skatteverket.se/foretag/moms/deklareramoms/fyllaimomsdeklarationen.4.3a2a542410ab40a421c80004214.html
+[22] BFL 5 kap. 1 § — same provision as [13], applied in §4.13 to the
+     `# Avstämning` section: the omföring emptying the utgående- and
+     ingående-moms accounts to momsredovisningskontot (2650/1650) is what
+     keeps "sambanden mellan systemdokumentationen och den löpande
+     bokföringen" readable from a filed momsdeklaration back to the
+     verifikationer it summarises.
