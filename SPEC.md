@@ -66,38 +66,38 @@ In addition to the terms defined in OKF §2, this profile uses:
   depreciation entry at year-end close.
 - **Leverantör (Supplier)** — the counterparty a company purchases
   goods or services from; the "motpart" a `Verification`'s
-  `counterparty` field (§4.1.1) names in free text when the
+  `counterparty` field (§4.2.1) names in free text when the
   affärshändelse is a purchase.
 - **Leverantörsfaktura (Supplier Invoice)** — an invoice received from
   a leverantör for goods or services purchased; the document a
-  `Verification`'s `supporting_documents` (§4.1.1) references when the
+  `Verification`'s `supporting_documents` (§4.2.1) references when the
   affärshändelse is a purchase, and the accounting purpose this
-  profile's `Supplier Invoice` concept type (§4.4) serves.
+  profile's `Supplier Invoice` concept type (§4.5) serves.
 - **Leverantörsreskontra** — a sidoordnad bokföring (subsidiary
   ledger) recording, per leverantör, the invoices received and amounts
   owed (BFL 5 kap. 4 §); the accounting purpose this profile's
-  `Supplier` (§4.3) and `Supplier Invoice` (§4.4) concept types jointly
+  `Supplier` (§4.4) and `Supplier Invoice` (§4.5) concept types jointly
   serve — `Supplier` holds the leverantör's master data, `Supplier
   Invoice` holds each invoice and amount owed.
 - **Kund (Customer)** — the counterparty a company sells goods or
   services to; the "motpart" a `Verification`'s `counterparty` field
-  (§4.1.1) names in free text when the affärshändelse is a sale.
+  (§4.2.1) names in free text when the affärshändelse is a sale.
 - **Kundfaktura (Customer Invoice)** — an invoice issued to a kund for
   goods or services sold; the document a `Verification`'s
-  `supporting_documents` (§4.1.1) references when the affärshändelse is
+  `supporting_documents` (§4.2.1) references when the affärshändelse is
   a sale, and the accounting purpose this profile's `Customer Invoice`
-  concept type (§4.6) serves.
+  concept type (§4.7) serves.
 - **Kundreskontra** — a sidoordnad bokföring (subsidiary ledger)
   recording, per kund, the invoices issued and amounts owed to the
   company (BFL 5 kap. 4 §); the accounting purpose this profile's
-  `Customer` (§4.5) and `Customer Invoice` (§4.6) concept types jointly
+  `Customer` (§4.6) and `Customer Invoice` (§4.7) concept types jointly
   serve — `Customer` holds the kund's master data, `Customer Invoice`
   holds each invoice and amount owed.
 - **Anställd (Employee)** — a natural person employed by the company in
   return for lön (salary/wages); the "motpart" a `Verification`'s
-  `counterparty` field (§4.1.1) names in free text when the
+  `counterparty` field (§4.2.1) names in free text when the
   affärshändelse is a löneutbetalning (salary payment). The accounting
-  purpose this profile's `Employee` concept type (§4.7) serves is the
+  purpose this profile's `Employee` concept type (§4.8) serves is the
   per-person identifying and tax-withholding data an arbetsgivare must
   hold to run löpande löneadministration and report each month's
   arbetsgivardeklaration på individnivå (AGI).
@@ -107,28 +107,28 @@ In addition to the terms defined in OKF §2, this profile uses:
   tillägg, skattefria kostnadsersättningar (e.g. utlägg), avdragen skatt,
   and other avdrag. It sits between `Employee` and `Verification` the
   same way `Supplier Invoice` sits between `Supplier` and `Verification`
-  (§4.4): the `Employee` is *who* the anställd is, the `Payslip`
-  (§4.8) is *what was paid, for which period, and how it breaks down*,
-  and the `Verification` (§4.1) is *how the resulting löneutbetalning
+  (§4.5): the `Employee` is *who* the anställd is, the `Payslip`
+  (§4.9) is *what was paid, for which period, and how it breaks down*,
+  and the `Verification` (§4.2) is *how the resulting löneutbetalning
   was booked* — the lönespecifikation is the verifikation's underlying
   document (bokföringsunderlag), not the verifikation itself.
 - **Utlägg (Expense)** — a business cost an anställd (or, in an
   aktiebolag, a närstående such as the owner) pays with personal
   funds on the company's behalf, creating a debt the company owes
   back to that person until reglerad (settled) — typically at the
-  next löneutbetalning, alongside the `Payslip`'s (§4.8) other
+  next löneutbetalning, alongside the `Payslip`'s (§4.9) other
   lönearter, or via a direct payout. Skatteverket treats an utlägg
   with no kvitto (receipt) preserved as not established, and
   requalifies it as taxable lön instead — this profile's `Expense`
-  concept type (§4.10) exists to make that underlying kvitto and its
+  concept type (§4.11) exists to make that underlying kvitto and its
   reimbursement status explicit and checkable.
 - **Kontoplan (Chart of Accounts)** — a bookkeeping system's complete
   list of accounts, each account's number and name, forming part of
   the systemdokumentation BFL 5 kap. 1 § requires (§7 [13]). This
-  profile's `Chart of Accounts` concept type (§4.9) represents the
+  profile's `Chart of Accounts` concept type (§4.10) represents the
   kontoplan bundle-wide, one file per bundle rather than per
-  räkenskapsår or per account — mirroring how `Supplier` (§4.3),
-  `Customer` (§4.5), and `Employee` (§4.7) hold bundle-wide master data
+  räkenskapsår or per account — mirroring how `Supplier` (§4.4),
+  `Customer` (§4.6), and `Employee` (§4.8) hold bundle-wide master data
   rather than duplicating it per fiscal year, but unlike them, as a
   single file rather than one file per entity.
 - **Momsdeklaration** — the periodic mervärdesskattedeklaration a
@@ -136,16 +136,228 @@ In addition to the terms defined in OKF §2, this profile uses:
   and ingående moms and other VAT-relevant amounts per
   redovisningsperiod into a fixed set of numbered fält (rutor) that
   Skatteverket's blankett defines (SFL 26 kap.). This profile's `Chart
-  of Accounts` concept type (§4.9) records, per account, which of
+  of Accounts` concept type (§4.10) records, per account, which of
   these fält (if any) the account's postings map into, so that a
-  momsdeklaration can be derived by summing `Verification` (§4.1)
+  momsdeklaration can be derived by summing `Verification` (§4.2)
   postings per account and rolling them up via that mapping.
+- **Arbetsgivardeklaration (Employer Tax Declaration)** — the monthly
+  report an arbetsgivare files with Skatteverket for one
+  redovisningsperiod, declaring utbetalda ersättningar, gjorda
+  skatteavdrag, and arbetsgivaravgifter (SFL 26 kap.). It has two parts:
+  a **huvuduppgift**, filed once per period for the whole company (e.g.
+  summa arbetsgivaravgifter FK487, summa avdragen skatt FK497), and one
+  **individuppgift** per betalningsmottagare (e.g. personnummer FK215,
+  kontant ersättning FK011, avdragen skatt FK001) — the per-person
+  breakdown `Employee` (§4.8) and `Payslip` (§4.9) already refer to as
+  the "arbetsgivardeklaration på individnivå (AGI)". This profile's
+  `Employer Tax Declaration` concept type (§4.12) represents one such
+  declaration, aggregating a period's `Payslip` concepts into its
+  individuppgifter and reconciling against the löneutbetalning
+  `Verification`(s) (§4.2).
+- **Organisation (Organization)** — the juridiska person (an aktiebolag,
+  an enskild firma, or other) whose bokföring the bundle documents: the
+  company itself, holding its own identitet (organisationsnummer, firma),
+  skatteregistreringar (momsregistreringsnummer, F-skatt), teknisk
+  kontaktperson for dealings with Skatteverket, and arbetsställen. The
+  accounting purpose this profile's `Organization` concept type (§4.1)
+  serves — bundle-wide, one file per bundle like `Chart of Accounts`
+  (§4.10) — is to hold that egen masterdata once rather than repeating the
+  organisationsnummer in every `Employer Tax Declaration` (§4.12) and
+  elsewhere.
+- **Arbetsställe (Workplace)** — a physical location (adress) where an
+  arbetsgivare conducts verksamhet; Statistiska centralbyråns (SCB)
+  Företagsregister assigns each arbetsställe an arbetsställenummer
+  (CFAR-nummer). An arbetsgivare med fler än ett arbetsställe must report
+  the relevant arbetsställenummer per betalningsmottagare in the
+  arbetsgivardeklaration på individnivå (AGI) — Skatteverkets fältkod
+  FK060. This profile's `Organization` concept type (§4.1) records the
+  company's arbetsställen and their CFAR-nummer, so each `Employee`'s
+  (§4.8) FK060 in an `Employer Tax Declaration`'s (§4.12) individuppgift
+  resolves to an address.
 
 ---
 
 ## 4. Concept Types
 
-### 4.1 `Verification`
+### 4.1 `Organization`
+
+An `Organization` concept represents the company itself: the juridiska
+person (aktiebolag, enskild firma, or other) whose bokföring the bundle
+documents. It holds the company's own master data — its identitet
+(organisationsnummer, firma), skatteregistreringar
+(momsregistreringsnummer, F-skatt), teknisk kontaktperson for dealings
+with Skatteverket, and arbetsställen — that other concept types otherwise
+have to repeat or leave implicit. In particular, the arbetsgivardeklaration
+an `Employer Tax Declaration` (§4.12) represents must carry the
+arbetsgivarens organisationsnummer (Skatteverkets fältkod FK201) and, in
+each individuppgift, the betalningsmottagarens arbetsställenummer (FK060)
+when the arbetsgivare has more than one arbetsställe (SFL 26 kap.); an
+`Organization` concept is where that organisationsnummer and those
+arbetsställen live.
+
+Unlike `Supplier` (§4.4), `Customer` (§4.6), and `Employee` (§4.8) — which
+are also bundle-wide master data, but one file per entity — an
+`Organization` concept is a single file for the whole bundle, since a
+bundle documents the bokföring of exactly one company. In this it mirrors
+`Chart of Accounts` (§4.10): scoped to the company as a whole rather than to
+any one `Fiscal Year` (§4.3), and represented as a single file rather than
+one file per entity. Producers SHOULD update that single file in place —
+bumping `timestamp` — when the company's details change, e.g. a new teknisk
+kontaktperson or a nytt arbetsställe.
+
+Concept ID convention: place the organization at the bundle root as
+`organization.md`. There is exactly one `Organization` concept per bundle
+— not one per fiscal year — so, like `Chart of Accounts` (§4.10) and unlike
+§4.2–§4.9, no subdirectory or per-entity filename convention is needed.
+
+#### 4.1.1 Frontmatter
+
+```yaml
+---
+type: Organization                     # REQUIRED (OKF §4.1)
+title: <Registered company name>       # REQUIRED
+organization_number: <string>          # REQUIRED
+vat_number: <string>                   # REQUIRED when applicable
+workplace_number: <string>             # REQUIRED when applicable
+f_tax_status: approved | not_approved  # Recommended
+registered_office: <string>            # Recommended
+postal_address: <string>               # Recommended
+workplace_address: <string>            # Recommended
+technical_contact: <string>            # Recommended
+technical_contact_email: <string>      # Recommended
+technical_contact_phone: <string>      # Recommended
+description: <Optional one-line summary>  # Recommended (OKF §4.1)
+tags: [<tag>, …]                       # Optional (OKF §4.1)
+timestamp: <ISO 8601 datetime>         # Recommended (OKF §4.1)
+---
+```
+
+The generic OKF fields (`type`, `description`, `tags`, `timestamp`) keep
+their OKF §4.1 meaning, with one change: `title` is **required** for
+`Organization`, not merely recommended — promoted from OKF's generic
+"Recommended" (OKF §4.1) for the same reason as `Customer.title` (§4.6.1)
+and `Employee.title` (§4.8.1): a company concept without a firma does not
+identify the company it describes.
+
+**Required**, per SFL 26 kap. (arbetsgivardeklarationens huvuduppgift):
+
+- `organization_number` — the company's own organisationsnummer (or, for
+  an enskild firma, the innehavarens personnummer). This is the FK201 the
+  arbetsgivardeklaration reports (§4.12.1) and the identity every other
+  concept ultimately traces back to; recording it once here avoids
+  repeating it in each `Employer Tax Declaration` (§4.12) and elsewhere.
+
+**Required when applicable**, per Mervärdesskattelagen (ML) and SFL 26
+kap. (individuppgiftens arbetsställenummer):
+
+- `vat_number` — the company's momsregistreringsnummer, required whenever
+  the company is registered for VAT, since it appears on every kundfaktura
+  the company issues and governs its own mervärdesskattedeklaration.
+  Mirrors `Supplier.vat_number` (§4.4.1). Omit for a company not
+  registered for VAT.
+- `workplace_number` — the primary arbetsställe's arbetsställenummer
+  (CFAR-nummer), assigned by Statistiska centralbyråns (SCB)
+  Företagsregister. Required whenever the company has been assigned one —
+  i.e. has more than one arbetsställe — because an arbetsgivare med fler
+  än ett arbetsställe must report the relevant arbetsställenummer per
+  betalningsmottagare in the AGI individuppgift (FK060, §4.12.1). A
+  company with a single arbetsställe, to which SCB assigns no
+  arbetsställenummer, MAY omit it.
+
+**Recommended**:
+
+- `f_tax_status` — whether the company holds F-skatt (`approved`) or not
+  (`not_approved`), mirroring `Supplier.f_tax_status` (§4.4.1). Relevant
+  because a company invoicing for tjänster states its innehav av F-skatt
+  on its kundfakturor.
+- `registered_office` — the bolagets säte (registered office / kommun), as
+  stated in the company's registration and årsredovisning.
+- `postal_address` — the company's postal/correspondence address, when it
+  differs from `workplace_address`.
+- `workplace_address` — the primary arbetsställe's physical address. When
+  the company has more than one arbetsställe, list them all — with their
+  arbetsställenummer — in the `# Arbetsställen` body section (§4.1.2).
+- `technical_contact` — the name of the company's tekniska kontaktperson:
+  the person Skatteverket and other myndigheter contact about the
+  company's deklarationer and e-tjänster.
+- `technical_contact_email` / `technical_contact_phone` — that contact
+  person's e-postadress and telefonnummer.
+
+**Arbetsställen**, per SFL 26 kap. (arbetsställenummer i individuppgiften):
+
+An arbetsställe's address and arbetsställenummer are per-arbetsställe data,
+not a single scalar, so — like a `Fiscal Year`'s balances (§4.3.1) or a
+`Chart of Accounts`' accounts (§4.10.1) — when there is more than one
+arbetsställe they belong in the body as a table, not in frontmatter:
+
+- An `Organization` concept MUST include an `# Arbetsställen` body section
+  (§4.1.2) whenever the company has more than one arbetsställe, listing
+  each arbetsställe's address and arbetsställenummer (CFAR-nummer). Without
+  it, an `Employee`'s (§4.8) FK060 in an `Employer Tax Declaration`'s
+  (§4.12) individuppgift cannot be resolved to a specific arbetsställe. A
+  company with a single arbetsställe MAY record it in `workplace_address`
+  alone and omit the section.
+
+#### 4.1.2 Conventional body sections
+
+In addition to the OKF §4.2 conventional headings, `Organization` concepts
+SHOULD use:
+
+| Heading           | Purpose                                                                                                                    |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `# Arbetsställen`  | Each arbetsställe's address and arbetsställenummer (CFAR-nummer). REQUIRED when the company has more than one arbetsställe. |
+| `# Contact`        | The tekniska kontaktpersonen and any other roller (e.g. firmatecknare, ekonomiansvarig).                                  |
+| `# Citations`      | As OKF §8 — the legal or documentary basis, if not obvious from context.                                                  |
+
+#### 4.1.3 Example
+
+```markdown
+---
+type: Organization
+title: Company AB
+organization_number: "556789-0123"
+vat_number: "SE556789012301"
+workplace_number: "12345678"
+f_tax_status: approved
+registered_office: Storstad
+postal_address: Storgatan 1, 111 22 Storstad
+workplace_address: Storgatan 1, 111 22 Storstad
+technical_contact: Erik Karlsson
+technical_contact_email: erik.karlsson@company.example
+technical_contact_phone: "+46 8 123 45 67"
+timestamp: 2026-07-01T09:00:00Z
+---
+
+[Company AB](https://company.example/), org.nr 556789-0123. Bolagets egen
+masterdata: identitet, skatteregistreringar, teknisk kontaktperson för
+deklarationer, och arbetsställen. Organisationsnumret här är samma FK201
+som varje [arbetsgivardeklaration](/employer-tax-declarations/) (§4.12)
+rapporterar.
+
+# Arbetsställen
+
+| Arbetsställe | Adress                            | Arbetsställenummer (CFAR) |
+| ------------- | --------------------------------- | -------------------------- |
+| Huvudkontor   | Storgatan 1, 111 22 Storstad      | 12345678                   |
+| Lager         | Industrivägen 4, 111 45 Storstad  | 87654321                   |
+
+# Contact
+
+Teknisk kontaktperson för deklarationer och e-tjänster: Erik Karlsson,
+erik.karlsson@company.example, +46 8 123 45 67.
+
+# Citations
+
+[1] Skatteförfarandelagen (SFL) 26 kap. — arbetsgivardeklarationens
+    organisationsnummer (FK201) och individuppgiftens arbetsställenummer
+    (FK060).
+[2] Statistiska centralbyrån (SCB), Företagsregistret — arbetsställenummer
+    (CFAR-nummer) per arbetsställe.
+```
+
+---
+
+### 4.2 `Verification`
 
 A `Verification` concept represents exactly one verifikation: the
 grundmaterial ("raw material") of all bookkeeping. Every
@@ -155,10 +367,10 @@ Concept ID convention: place verifications under a `verifications/`
 subdirectory, one file per verifikation, e.g.
 `verifications/2026/000123.md`. Because BFL requires verifications to
 be traceable in registration order via their `verification_number`
-(§4.1.1 below), producers SHOULD choose filenames that preserve that
+(§4.2.1 below), producers SHOULD choose filenames that preserve that
 order.
 
-#### 4.1.1 Frontmatter
+#### 4.2.1 Frontmatter
 
 ```yaml
 ---
@@ -232,7 +444,7 @@ recommended, and its content is constrained as specified below.
   (`internal`, e.g. kundfaktura, lönebesked), or an internally written
   substitute when no natural verification exists (`bokforingsorder`).
 
-#### 4.1.2 Conventional body sections
+#### 4.2.2 Conventional body sections
 
 In addition to the OKF §4.2 conventional headings, `Verification`
 concepts SHOULD use:
@@ -243,7 +455,7 @@ concepts SHOULD use:
 | `# Supporting Documents` | Expands on `supporting_documents`: where each referenced handling/avtal is archived. |
 | `# Citations`            | As OKF §8 — the legal or documentary basis, if not obvious from context.             |
 
-#### 4.1.3 Example
+#### 4.2.3 Example
 
 ```markdown
 ---
@@ -285,7 +497,7 @@ avseende kontorsmaterial till kontoret, mottagen 2026-06-30.
 
 ---
 
-### 4.2 `Fiscal Year`
+### 4.3 `Fiscal Year`
 
 A `Fiscal Year` concept represents exactly one räkenskapsår: the period
 the löpande bokföring is organized into and, at its end, closed off with
@@ -297,10 +509,10 @@ Concept ID convention: place fiscal years under a `fiscal-years/`
 subdirectory, one file per räkenskapsår, e.g.
 `fiscal-years/2025-2026.md`. Producers SHOULD use the same label for
 the fiscal year's file and for its corresponding
-`verifications/<label>/` subdirectory (§4.1), so the two can be
+`verifications/<label>/` subdirectory (§4.2), so the two can be
 correlated without opening either.
 
-#### 4.2.1 Frontmatter
+#### 4.3.1 Frontmatter
 
 ```yaml
 ---
@@ -355,7 +567,7 @@ timestamp: <ISO 8601 datetime>     # Recommended (OKF §4.1)
   year's closing balances (utgående balans); this link lets tooling
   check that continuity without guessing which concept precedes which.
 - `verification_number_range` — the first and last
-  `verification_number` (§4.1.1) recorded in this fiscal year, e.g.
+  `verification_number` (§4.2.1) recorded in this fiscal year, e.g.
   `["V1", "V189"]`. Since BFL 5 kap. 6–7 §§ require verifications to be
   traceable via a löpande verifikationsnummer, this makes it checkable
   that the numbering within the year is complete, without opening every
@@ -364,11 +576,11 @@ timestamp: <ISO 8601 datetime>     # Recommended (OKF §4.1)
 **Balances**, per BFL 6 kap. (bokslutets innehåll):
 
 Account balances are per-account data, not a single scalar, so — like
-a `Verification`'s kontering (§4.1.2) — they belong in the body as a
+a `Verification`'s kontering (§4.2.2) — they belong in the body as a
 table, not in frontmatter:
 
 - A `Fiscal Year` concept MUST include an `# Opening Balances` body
-  section (§4.2.2), listing the ingående balans for every account.
+  section (§4.3.2), listing the ingående balans for every account.
   When `previous_fiscal_year` is set, these balances SHOULD equal that
   year's `# Closing Balances` — BFL requires a räkenskapsår's opening
   balances to tie to the prior year's closing balances, and restating
@@ -377,11 +589,11 @@ table, not in frontmatter:
   balances are zero for every account, but the section itself MUST
   still be present.
 - A `Fiscal Year` concept MUST include a `# Closing Balances` body
-  section (§4.2.2) once `status` is `closed`, listing the utgående
+  section (§4.3.2) once `status` is `closed`, listing the utgående
   balans for every account. A bokslut that does not state the closing
   position of every account is not complete.
 
-#### 4.2.2 Conventional body sections
+#### 4.3.2 Conventional body sections
 
 In addition to the OKF §4.2 conventional headings, `Fiscal Year`
 concepts SHOULD use:
@@ -394,7 +606,7 @@ concepts SHOULD use:
 | `# Closing`           | Narrative details of the årsbokslut/årsredovisning once `status` is `closed`.            |
 | `# Citations`         | As OKF §8 — the legal or documentary basis, if not obvious from context.                 |
 
-#### 4.2.3 Example
+#### 4.3.3 Example
 
 ```markdown
 ---
@@ -438,7 +650,7 @@ utgående balans — 2026-08-31 in this example — for every account.
 
 ---
 
-### 4.3 `Supplier`
+### 4.4 `Supplier`
 
 A `Supplier` concept represents exactly one leverantör: a recurring
 motpart in verifikationer, whose identifying and payment details would
@@ -450,16 +662,16 @@ can be identified and reconciled (BFL 5 kap. 4 §). A `Supplier`
 concept is this profile's representation of the leverantör's
 master-data entry in that leverantörsreskontra; the individual
 invoices tracked within it are represented by `Supplier Invoice`
-concepts (§4.4).
+concepts (§4.5).
 
 Concept ID convention: place suppliers under a `suppliers/`
 subdirectory, one file per leverantör, e.g.
 `suppliers/kontorsvaruhuset-ab.md`. Producers SHOULD use a stable,
 recognizable slug so a `Verification`'s free-text `counterparty`
-(§4.1.1) can be matched to the corresponding `Supplier` concept
+(§4.2.1) can be matched to the corresponding `Supplier` concept
 without ambiguity.
 
-#### 4.3.1 Frontmatter
+#### 4.4.1 Frontmatter
 
 ```yaml
 ---
@@ -490,7 +702,7 @@ Mervärdesskattelagen (ML)'s invoice-content rules:
 - `company_number` — the organisationsnummer of a legal person or the
   personnummer of a sole trader (enskild firma), identifying the
   leverantör as the "motpart" a `Verification`'s `counterparty` field
-  (§4.1.1) names in free text. A foreign supplier with no Swedish-style
+  (§4.2.1) names in free text. A foreign supplier with no Swedish-style
   registration number MAY omit this field and rely on `vat_number`
   instead.
 - `vat_number` — the momsregistreringsnummer, required for a supplier
@@ -525,7 +737,7 @@ Mervärdesskattelagen (ML)'s invoice-content rules:
 - `reference_person` — a named contact person at the supplier (vår
   referens/er referens).
 
-#### 4.3.2 Conventional body sections
+#### 4.4.2 Conventional body sections
 
 In addition to the OKF §4.2 conventional headings, `Supplier` concepts
 SHOULD use:
@@ -533,10 +745,10 @@ SHOULD use:
 | Heading               | Purpose                                                                  |
 | ---------------------- | ------------------------------------------------------------------------- |
 | `# Verifications`      | Links to verifications where this supplier is the `counterparty`.       |
-| `# Supplier Invoices`  | Links to `Supplier Invoice` concepts (§4.4) received from this supplier. |
+| `# Supplier Invoices`  | Links to `Supplier Invoice` concepts (§4.5) received from this supplier. |
 | `# Citations`          | As OKF §8 — the legal or documentary basis, if not obvious from context. |
 
-#### 4.3.3 Example
+#### 4.4.3 Example
 
 ```markdown
 ---
@@ -571,14 +783,14 @@ av kontorsmaterial.
 
 ---
 
-### 4.4 `Supplier Invoice`
+### 4.5 `Supplier Invoice`
 
 A `Supplier Invoice` concept represents exactly one leverantörsfaktura:
-a specific invoice received from a `Supplier` (§4.3), stating what is
+a specific invoice received from a `Supplier` (§4.4), stating what is
 owed, to whom, and by when. It sits between `Supplier` and
 `Verification`: the `Supplier` is *who* the counterparty is, the
 `Supplier Invoice` is *what was invoiced and when it falls due*, and
-the `Verification` (§4.1) is *how the resulting affärshändelse was
+the `Verification` (§4.2) is *how the resulting affärshändelse was
 booked* — the leverantörsfaktura is the verifikation's underlying
 document (bokföringsunderlag), not the verifikation itself.
 
@@ -588,7 +800,7 @@ e.g. `supplier-invoices/2026/KV-88213.md`. Producers SHOULD name the
 file after `invoice_number` so the corresponding leverantörsfaktura
 can be located without opening it.
 
-#### 4.4.1 Frontmatter
+#### 4.5.1 Frontmatter
 
 ```yaml
 ---
@@ -622,7 +834,7 @@ The generic OKF fields (`type`, `title`, `description`, `resource`,
 invoice-content rules, and Bokföringsnämndens allmänna råd on
 löpande bokföring (BFNAR 2013:2):
 
-- `supplier` — the Concept ID of the `Supplier` (§4.3) who issued the
+- `supplier` — the Concept ID of the `Supplier` (§4.4) who issued the
   invoice, rather than repeating their identifying details in free
   text.
 - `invoice_number` — the leverantörens fakturanummer: the supplier's
@@ -641,7 +853,7 @@ löpande bokföring (BFNAR 2013:2):
   needed because "[f]öretaget använder olika identifieringstecken för
   samma faktura i leverantörsreskontran respektive bokföringen."
 - `amount` — the total sum payable, including currency, mirroring
-  `Verification.amount` (§4.1.1).
+  `Verification.amount` (§4.2.1).
 - `payment_status` — whether the invoice is still owed (`unpaid`) or
   has been settled (`paid`). A leverantörsreskontra exists
   specifically to track this per invoice, so an already-paid invoice
@@ -661,12 +873,12 @@ löpande bokföring (BFNAR 2013:2):
 
 **Recommended**:
 
-- `verification` — the Concept ID of the `Verification` (§4.1) that
+- `verification` — the Concept ID of the `Verification` (§4.2) that
   books this invoice.
 - `payment_terms` — the betalningsvillkor stated on this invoice, when
-  they differ from the `Supplier`'s default `payment_terms` (§4.3.1).
+  they differ from the `Supplier`'s default `payment_terms` (§4.4.1).
 
-#### 4.4.2 Conventional body sections
+#### 4.5.2 Conventional body sections
 
 In addition to the OKF §4.2 conventional headings, `Supplier Invoice`
 concepts SHOULD use:
@@ -677,7 +889,7 @@ concepts SHOULD use:
 | `# Payment`     | The invoice's payment/reskontra status, to avoid double payment.        |
 | `# Citations`   | As OKF §8 — the legal or documentary basis, if not obvious from context. |
 
-#### 4.4.3 Example
+#### 4.5.3 Example
 
 ```markdown
 ---
@@ -721,7 +933,7 @@ från fakturadatum.
 
 ---
 
-### 4.5 `Customer`
+### 4.6 `Customer`
 
 A `Customer` concept represents exactly one kund: a recurring motpart
 in verifikationer, whose identifying and payment details would
@@ -732,15 +944,15 @@ bokföring — a kundreskontra — through which those transactions can be
 identified and reconciled (BFL 5 kap. 4 §). A `Customer` concept is
 this profile's representation of the kund's master-data entry in that
 kundreskontra; the individual invoices tracked within it are
-represented by `Customer Invoice` concepts (§4.6).
+represented by `Customer Invoice` concepts (§4.7).
 
 Concept ID convention: place customers under a `customers/`
 subdirectory, one file per kund, e.g. `customers/foretag-ab.md`.
 Producers SHOULD use a stable, recognizable slug so a `Verification`'s
-free-text `counterparty` (§4.1.1) can be matched to the corresponding
+free-text `counterparty` (§4.2.1) can be matched to the corresponding
 `Customer` concept without ambiguity.
 
-#### 4.5.1 Frontmatter
+#### 4.6.1 Frontmatter
 
 ```yaml
 ---
@@ -773,11 +985,11 @@ does not identify the kund it belongs to.
   "[u]ppgiften om motpart kan vara ett kundnummer, om det finns
   fullständiga uppgifter om kunden i kundregistret" — a kundnummer is
   an accepted way to identify the motpart named in a `Verification`
-  (§4.1.1), provided the full customer details are recorded here.
+  (§4.2.1), provided the full customer details are recorded here.
 - `company_number` — the organisationsnummer of a legal person, or the
   personnummer of a sole trader or private individual, identifying the
   kund as the "motpart" a `Verification`'s `counterparty` field
-  (§4.1.1) names in free text. A foreign or anonymous-at-point-of-sale
+  (§4.2.1) names in free text. A foreign or anonymous-at-point-of-sale
   customer MAY omit this field and rely on `vat_number` or
   `customer_number` instead.
 - `vat_number` — the momsregistreringsnummer, required for a customer
@@ -805,7 +1017,7 @@ does not meet that bar.
 - `reference_person` — a named contact person at the customer (vår
   referens/er referens).
 
-#### 4.5.2 Conventional body sections
+#### 4.6.2 Conventional body sections
 
 In addition to the OKF §4.2 conventional headings, `Customer` concepts
 SHOULD use:
@@ -813,10 +1025,10 @@ SHOULD use:
 | Heading               | Purpose                                                                  |
 | ---------------------- | ------------------------------------------------------------------------- |
 | `# Verifications`      | Links to verifications where this customer is the `counterparty`.       |
-| `# Customer Invoices`  | Links to `Customer Invoice` concepts (§4.6) issued to this customer.    |
+| `# Customer Invoices`  | Links to `Customer Invoice` concepts (§4.7) issued to this customer.    |
 | `# Citations`          | As OKF §8 — the legal or documentary basis, if not obvious from context. |
 
-#### 4.5.3 Example
+#### 4.6.3 Example
 
 ```markdown
 ---
@@ -852,18 +1064,18 @@ konsulttjänster.
 
 ---
 
-### 4.6 `Customer Invoice`
+### 4.7 `Customer Invoice`
 
 A `Customer Invoice` concept represents exactly one kundfaktura: a
-specific invoice issued to a `Customer` (§4.5), stating what is owed,
+specific invoice issued to a `Customer` (§4.6), stating what is owed,
 by whom, and by when. It sits between `Customer` and `Verification`:
 the `Customer` is *who* the counterparty is, the `Customer Invoice` is
 *what was invoiced and when it falls due*, and the `Verification`
-(§4.1) is *how the resulting affärshändelse was booked* — the
+(§4.2) is *how the resulting affärshändelse was booked* — the
 kundfaktura is the verifikation's underlying document
 (bokföringsunderlag), not the verifikation itself.
 
-Unlike `Supplier Invoice` (§4.4), a `Customer Invoice` has only one
+Unlike `Supplier Invoice` (§4.5), a `Customer Invoice` has only one
 identification chain: the issuing company assigns `invoice_number`
 itself, from a sequential series, at the moment of issue. A `Supplier
 Invoice` needs a separate `sequence_number` and `received_date`
@@ -884,7 +1096,7 @@ Concept ID convention: place customer invoices under a
 after `invoice_number` so the corresponding kundfaktura can be located
 without opening it.
 
-#### 4.6.1 Frontmatter
+#### 4.7.1 Frontmatter
 
 ```yaml
 ---
@@ -915,13 +1127,13 @@ The generic OKF fields (`type`, `title`, `description`, `resource`,
 **Required**, per BFL 5 kap. 4 § (kundreskontra) and ML's
 invoice-content rules:
 
-- `customer` — the Concept ID of the `Customer` (§4.5) the invoice was
+- `customer` — the Concept ID of the `Customer` (§4.6) the invoice was
   issued to, rather than repeating their identifying details in free
   text.
 - `invoice_number` — the fakturanummer the issuing company assigns,
   drawn from a sequential series (ML requires a faktura's löpnummer to
   make it uniquely identifiable within one or more series). Unlike
-  `Supplier Invoice.invoice_number` (§4.4.1), this is the company's own
+  `Supplier Invoice.invoice_number` (§4.5.1), this is the company's own
   number, not a counterparty's.
 - `invoice_date` — fakturadatum: the date printed on the invoice, and —
   since the company controls issuance — the date that governs when the
@@ -930,7 +1142,7 @@ invoice-content rules:
 - `due_date` — förfallodatum: the date payment is due, without which
   the reskontra cannot flag an invoice as overdue.
 - `amount` — the total sum owed, including currency, mirroring
-  `Verification.amount` (§4.1.1).
+  `Verification.amount` (§4.2.1).
 - `payment_status` — whether the invoice is still owed (`unpaid`) or
   has been settled (`paid`). A kundreskontra exists specifically to
   track this per invoice, so that an already-paid invoice is not
@@ -942,7 +1154,7 @@ invoice-content rules:
   carries Swedish VAT.
 - `payment_date` — the actual date payment was received. Required once
   `payment_status` is `paid`, mirroring `Supplier Invoice.payment_date`
-  (§4.4.1).
+  (§4.5.1).
 - `currency` / `exchange_rate` — for an invoice issued in a foreign
   currency: the original currency and the exchange rate used at
   booking, since the rate at payment may differ and produce a
@@ -950,12 +1162,12 @@ invoice-content rules:
 
 **Recommended**:
 
-- `verification` — the Concept ID of the `Verification` (§4.1) that
+- `verification` — the Concept ID of the `Verification` (§4.2) that
   books this invoice.
 - `payment_terms` — the betalningsvillkor stated on this invoice, when
-  they differ from the `Customer`'s default `payment_terms` (§4.5.1).
+  they differ from the `Customer`'s default `payment_terms` (§4.6.1).
 
-#### 4.6.2 Conventional body sections
+#### 4.7.2 Conventional body sections
 
 In addition to the OKF §4.2 conventional headings, `Customer Invoice`
 concepts SHOULD use:
@@ -966,7 +1178,7 @@ concepts SHOULD use:
 | `# Payment`     | The invoice's payment/reskontra status, to track outstanding amounts.   |
 | `# Citations`   | As OKF §8 — the legal or documentary basis, if not obvious from context. |
 
-#### 4.6.3 Example
+#### 4.7.3 Example
 
 ```markdown
 ---
@@ -1007,7 +1219,7 @@ fakturadatum.
 
 ---
 
-### 4.7 `Employee`
+### 4.8 `Employee`
 
 An `Employee` concept represents exactly one anställd: a person the
 company pays lön to, and for whom the company must hold enough
@@ -1017,17 +1229,17 @@ the per-person breakdown of paid ersättning and gjorda skatteavdrag
 that Skatteförfarandelagen (SFL) has required since 2019 (26 kap.).
 An `Employee` concept is this profile's representation of that
 per-person master data; the individual löneutbetalningar are recorded,
-like any other affärshändelse, as `Verification` concepts (§4.1) that
+like any other affärshändelse, as `Verification` concepts (§4.2) that
 name the employee as `counterparty`.
 
 Concept ID convention: place employees under an `employees/`
 subdirectory, one file per anställd, e.g.
 `employees/anna-svensson.md`. Producers SHOULD use a stable,
 recognizable slug so a `Verification`'s free-text `counterparty`
-(§4.1.1) can be matched to the corresponding `Employee` concept
+(§4.2.1) can be matched to the corresponding `Employee` concept
 without ambiguity.
 
-#### 4.7.1 Frontmatter
+#### 4.8.1 Frontmatter
 
 ```yaml
 ---
@@ -1054,7 +1266,7 @@ The generic OKF fields (`type`, `description`, `tags`, `timestamp`)
 keep their OKF §4.1 meaning, with one change: `title` is **required**
 for `Employee`, not merely recommended — promoted from OKF's generic
 "Recommended" (OKF §4.1) for the same reason as `Customer.title`
-(§4.5.1): a löneutbetalning's `counterparty` names the anställd by
+(§4.6.1): a löneutbetalning's `counterparty` names the anställd by
 name, and that name has to resolve to a concept.
 
 **Required when applicable**, per SFL 26 kap. (individuppgift i
@@ -1063,7 +1275,7 @@ enligt skattetabell och jämkning):
 
 - `personal_number` — the personnummer (or, for a foreign anställd not
   in folkbokföringen, a samordningsnummer) identifying the anställd as
-  the "motpart" a `Verification`'s `counterparty` field (§4.1.1) names
+  the "motpart" a `Verification`'s `counterparty` field (§4.2.1) names
   in free text, and the identifier the AGI reports per person each
   month. Omit only for the rare anställd Skatteverket has not yet
   assigned either number to.
@@ -1087,7 +1299,7 @@ enligt skattetabell och jämkning):
   the address.
 - `bank_account` — the account lönen is paid into. Required whenever
   the anställd is paid electronically, mirroring `Supplier.bank_account`
-  (§4.3.1).
+  (§4.4.1).
 - `end_date` — the anställd's last day of employment. Required once
   the anställning has ended.
 
@@ -1100,7 +1312,7 @@ enligt skattetabell och jämkning):
   (månadslön), `hourly` (timlön), or a `board_fee` (styrelsearvode).
 - `position` — the anställdas befattning.
 
-#### 4.7.2 Conventional body sections
+#### 4.8.2 Conventional body sections
 
 In addition to the OKF §4.2 conventional headings, `Employee` concepts
 SHOULD use:
@@ -1110,7 +1322,7 @@ SHOULD use:
 | `# Verifications` | Links to verifications where this employee is the `counterparty`.        |
 | `# Citations`     | As OKF §8 — the legal or documentary basis, if not obvious from context. |
 
-#### 4.7.3 Example
+#### 4.8.3 Example
 
 ```markdown
 ---
@@ -1141,16 +1353,16 @@ Anna Svensson, anställd som redovisningsekonom sedan 2022-03-01.
 
 ---
 
-### 4.8 `Payslip`
+### 4.9 `Payslip`
 
 A `Payslip` concept represents exactly one lönespecifikation: the
-breakdown an arbetsgivare gives an `Employee` (§4.7) for one löneperiod,
+breakdown an arbetsgivare gives an `Employee` (§4.8) for one löneperiod,
 stating what was paid and how the bruttolön (gross pay) became the
 nettolön (net pay) actually transferred. It sits between `Employee` and
-`Verification`, mirroring how `Supplier Invoice` (§4.4) sits between
+`Verification`, mirroring how `Supplier Invoice` (§4.5) sits between
 `Supplier` and `Verification`: the `Employee` is *who* the anställd is,
 the `Payslip` is *what was paid, for which period, and how it breaks
-down*, and the `Verification` (§4.1) is *how the resulting
+down*, and the `Verification` (§4.2) is *how the resulting
 löneutbetalning was booked* — the lönespecifikation is the
 verifikation's underlying document (bokföringsunderlag), not the
 verifikation itself.
@@ -1162,7 +1374,7 @@ or kundfaktura, a lönespecifikation carries no invoice-style löpnummer
 of its own, so producers SHOULD name the file after the anställd's slug
 and the löneperiod instead.
 
-#### 4.8.1 Frontmatter
+#### 4.9.1 Frontmatter
 
 ```yaml
 ---
@@ -1192,18 +1404,18 @@ The generic OKF fields (`type`, `title`, `description`, `resource`,
 löneutbetalning) and SFL 26 kap. (individuppgift i
 arbetsgivardeklaration på individnivå, AGI):
 
-- `employee` — the Concept ID of the `Employee` (§4.7) the
+- `employee` — the Concept ID of the `Employee` (§4.8) the
   lönespecifikation was issued to, rather than repeating their
   identifying details in free text.
 - `start_date` / `end_date` — the löneperiod the specifikationen
-  covers, mirroring `Fiscal Year.start_date`/`end_date` (§4.2.1). A
+  covers, mirroring `Fiscal Year.start_date`/`end_date` (§4.3.1). A
   löneperiod MAY be shorter than a full month — for example, an
   anställd who börjar or slutar sin anställning mid-period — so both
   dates are required rather than a single period label.
 - `payment_date` — utbetalningsdagen: the date lönen was actually
   transferred, mirroring `Supplier Invoice.payment_date`/`Customer
-  Invoice.payment_date` (§4.4.1/§4.6.1) and the date the `Verification`
-  (§4.1) booking the löneutbetalning should carry as its
+  Invoice.payment_date` (§4.5.1/§4.7.1) and the date the `Verification`
+  (§4.2) booking the löneutbetalning should carry as its
   `transaction_date`.
 - `gross_pay` — bruttolönen: the sum of all lönearter before avdrag,
   and one of the two per-anställd figures SFL 26 kap. requires
@@ -1212,7 +1424,7 @@ arbetsgivardeklaration på individnivå, AGI):
   two per-anställd figures SFL 26 kap. requires in the AGI
   individuppgift.
 - `net_pay` — nettolönen actually paid out, mirroring
-  `Verification.amount` (§4.1.1) so the lönespecifikation can be
+  `Verification.amount` (§4.2.1) so the lönespecifikation can be
   reconciled against the löneutbetalning it documents.
 
 **Required when applicable**:
@@ -1229,13 +1441,13 @@ arbetsgivardeklaration på individnivå, AGI):
   A lönespecifikation given to the anställd does not always itemize
   this — it is an employer cost, not a deduction from the anställd's
   lön — but producers MAY record it here rather than only in the
-  `Verification`'s kontering (§4.1.2).
-- `verification` — the Concept ID of the `Verification` (§4.1) that
+  `Verification`'s kontering (§4.2.2).
+- `verification` — the Concept ID of the `Verification` (§4.2) that
   books the löneutbetalning.
 - `resource` — a URI to the original lönebesked document, when one
   exists.
 
-#### 4.8.2 Conventional body sections
+#### 4.9.2 Conventional body sections
 
 In addition to the OKF §4.2 conventional headings, `Payslip` concepts
 SHOULD use:
@@ -1245,7 +1457,7 @@ SHOULD use:
 | `# Line Items`  | The lönearter: salary components, benefits, cost reimbursements (e.g. utlägg), and deductions that sum from `gross_pay` to `net_pay`. |
 | `# Citations`   | As OKF §8 — the legal or documentary basis, if not obvious from context.                   |
 
-#### 4.8.3 Example
+#### 4.9.3 Example
 
 ```markdown
 ---
@@ -1285,7 +1497,7 @@ avseende juni 2026. Bokförd som
 
 ---
 
-### 4.9 `Chart of Accounts`
+### 4.10 `Chart of Accounts`
 
 A `Chart of Accounts` concept represents the kontoplan: the company's
 complete list of bookkeeping accounts, their names, and — where
@@ -1296,7 +1508,7 @@ organisation and structure, "så att sambanden mellan
 systemdokumentationen och den löpande bokföringen enkelt kan utläsas"
 (BFL 5 kap. 1 §) — a kontoplan is a core part of that documentation,
 since without it the accounts referenced by every `Verification`'s
-kontering (§4.1.2) and every `Fiscal Year`'s balances (§4.2.1) cannot
+kontering (§4.2.2) and every `Fiscal Year`'s balances (§4.3.1) cannot
 be understood on their own. Separately, a VAT-registered company must
 file a periodic mervärdesskattedeklaration reporting utgående and
 ingående moms, among other amounts, per redovisningsperiod (SFL 26
@@ -1306,13 +1518,13 @@ Accounts` concept lets tooling derive that declaration automatically,
 by summing `Verification` postings per account and rolling the sums up
 through this account-to-fält mapping.
 
-Unlike `Supplier` (§4.3), `Customer` (§4.5), and `Employee` (§4.7) —
+Unlike `Supplier` (§4.4), `Customer` (§4.6), and `Employee` (§4.8) —
 which are also bundle-wide master data, but one file per entity — a
 `Chart of Accounts` concept is a single file for the whole bundle,
 since the systemdokumentation BFL 5 kap. 1 § requires describes the
 bookkeeping system as a whole, not one leverantör, kund, or anställd at
 a time. It is also, like `Supplier`/`Customer`/`Employee`, scoped to
-the company as a whole rather than to any one `Fiscal Year` (§4.2): a
+the company as a whole rather than to any one `Fiscal Year` (§4.3): a
 kontoplan may occasionally be revised, but it is not duplicated per
 räkenskapsår, and producers SHOULD update the single file in place —
 bumping `timestamp` — when accounts are added, renamed, or remapped.
@@ -1320,10 +1532,10 @@ bumping `timestamp` — when accounts are added, renamed, or remapped.
 Concept ID convention: place the chart of accounts at the bundle root
 as `chart-of-accounts.md`. There is exactly one `Chart of Accounts`
 concept per bundle — not one file per account and not one per fiscal
-year — so, unlike §4.1–§4.8, no subdirectory or per-entity filename
+year — so, unlike §4.2–§4.9, no subdirectory or per-entity filename
 convention is needed.
 
-#### 4.9.1 Frontmatter
+#### 4.10.1 Frontmatter
 
 ```yaml
 ---
@@ -1353,13 +1565,13 @@ The generic OKF fields (`type`, `title`, `description`, `tags`,
 
 An account's number, name, and (where applicable) VAT declaration
 field are per-account data, not a single scalar, so — like a `Fiscal
-Year`'s balances (§4.2.1) — they belong in the body as a table, not in
+Year`'s balances (§4.3.1) — they belong in the body as a table, not in
 frontmatter:
 
 - A `Chart of Accounts` concept MUST include an `# Accounts` body
-  section (§4.9.2), listing every account number and account name the
+  section (§4.10.2), listing every account number and account name the
   bookkeeping system uses. A systemdokumentation that omits accounts
-  actually posted to in `Verification` concepts (§4.1.2) does not let
+  actually posted to in `Verification` concepts (§4.2.2) does not let
   "sambanden mellan systemdokumentationen och den löpande bokföringen"
   be readily understood, as BFL 5 kap. 1 § requires.
 - The VAT Declaration Field column is **required when applicable**:
@@ -1370,7 +1582,7 @@ frontmatter:
   for accounts with no such mapping, e.g. a bank account or an
   inventory account, whose postings never enter the moms return.
 
-#### 4.9.2 Conventional body sections
+#### 4.10.2 Conventional body sections
 
 In addition to the OKF §4.2 conventional headings, `Chart of Accounts`
 concepts SHOULD use:
@@ -1380,7 +1592,7 @@ concepts SHOULD use:
 | `# Accounts` | The kontoplan: every account number and name, and, where applicable, the momsdeklaration field it maps to. REQUIRED. |
 | `# Citations` | As OKF §8 — the legal or documentary basis, if not obvious from context.                                        |
 
-#### 4.9.3 Example
+#### 4.10.3 Example
 
 ```markdown
 ---
@@ -1415,15 +1627,15 @@ Field-post.
 
 ---
 
-### 4.10 `Expense`
+### 4.11 `Expense`
 
 An `Expense` concept represents exactly one utlägg: a business cost an
 anställd (or, in an aktiebolag, a närstående such as the owner) has
 paid with personal funds on the company's behalf, creating a debt the
-company owes back to that person. It sits between `Employee` (§4.7)
-and `Verification`/`Payslip` (§4.8): the `Employee` is *who* paid
+company owes back to that person. It sits between `Employee` (§4.8)
+and `Verification`/`Payslip` (§4.9): the `Employee` is *who* paid
 privately, the `Expense` is *what was paid, evidenced by which kvitto,
-and whether/how it has been reimbursed*, and the `Verification` (§4.1)
+and whether/how it has been reimbursed*, and the `Verification` (§4.2)
 is *how the resulting cost and debt were booked* — the kvitto is the
 verifikation's underlying document (bokföringsunderlag), not the
 verifikation itself.
@@ -1443,12 +1655,12 @@ kvitto does not evidence a real utlägg.
 
 Concept ID convention: place expenses under an `expenses/`
 subdirectory, one file per utlägg, e.g.
-`expenses/2026/anna-svensson-2026-06-03.md`. Like a `Payslip` (§4.8),
+`expenses/2026/anna-svensson-2026-06-03.md`. Like a `Payslip` (§4.9),
 an utlägg carries no invoice-style löpnummer of its own, so producers
 SHOULD name the file after the anställd's slug and the
 `expense_date` instead.
 
-#### 4.10.1 Frontmatter
+#### 4.11.1 Frontmatter
 
 ```yaml
 ---
@@ -1474,21 +1686,21 @@ timestamp: <ISO 8601 datetime>     # Recommended (OKF §4.1)
 The generic OKF fields (`type`, `title`, `tags`, `timestamp`) keep
 their OKF §4.1 meaning, with two changes: `description` is **required**
 for `Expense`, not merely recommended, mirroring
-`Verification.description` (§4.1.1); and `resource` is **required**,
+`Verification.description` (§4.2.1); and `resource` is **required**,
 not merely recommended, for the reason given above.
 
 **Required**:
 
-- `employee` — the Concept ID of the `Employee` (§4.7) who paid the
+- `employee` — the Concept ID of the `Employee` (§4.8) who paid the
   utlägg with personal funds, rather than repeating their identifying
   details in free text.
 - `expense_date` — the date the utlägg was made: when the anställd
   actually paid with personal funds, mirroring
-  `Verification.transaction_date` (§4.1.1).
+  `Verification.transaction_date` (§4.2.1).
 - `description` — what the utlägg concerns — what was bought or which
   cost it covers, e.g. kontorsmaterial, en tjänsteresa, or
   trängselskatt. Stricter than OKF's generic "one-sentence summary"
-  (OKF §4.1), mirroring `Verification.description` (§4.1.1).
+  (OKF §4.1), mirroring `Verification.description` (§4.2.1).
 - `amount` — the total sum the anställd paid, including any moms.
 - `resource` — a URI to the kvitto: promoted to required, since a
   bookkeeping guide notes that "den anställde måste spara alla kvitton
@@ -1497,7 +1709,7 @@ not merely recommended, for the reason given above.
   not evidence an utlägg at all.
 - `reimbursement_status` — whether the debt to the anställd is still
   owed (`unpaid`) or has been settled (`paid`). Exists so that, when
-  reglering happens via the next `Payslip` (§4.8) rather than a direct
+  reglering happens via the next `Payslip` (§4.9) rather than a direct
   payout, tooling can confirm the payout was booked against the debt
   account rather than kostnadsförd a second time as lön.
 
@@ -1508,7 +1720,7 @@ not merely recommended, for the reason given above.
   separately in the kontering.
 - `reimbursement_date` — the regleringsdag: the date the debt was
   actually settled. Required once `reimbursement_status` is `paid`,
-  since the settling `Verification`'s `transaction_date` (§4.1.1)
+  since the settling `Verification`'s `transaction_date` (§4.2.1)
   SHOULD equal this date.
 - `currency` / `exchange_rate` — for an utlägg paid in a foreign
   currency, e.g. kost och logi i utlandet: the original currency and
@@ -1516,14 +1728,14 @@ not merely recommended, for the reason given above.
 
 **Recommended**:
 
-- `verification` — the Concept ID of the `Verification` (§4.1) that
+- `verification` — the Concept ID of the `Verification` (§4.2) that
   books the utlägg's cost and the resulting debt to the anställd, at
   the time the outlay occurred.
-- `payslip` — the Concept ID of the `Payslip` (§4.8) that reimburses
+- `payslip` — the Concept ID of the `Payslip` (§4.9) that reimburses
   this utlägg as one of its lönearter, when reglering happens that
   way rather than through a separate direct payout.
 
-#### 4.10.2 Conventional body sections
+#### 4.11.2 Conventional body sections
 
 In addition to the OKF §4.2 conventional headings, `Expense` concepts
 SHOULD use:
@@ -1534,7 +1746,7 @@ SHOULD use:
 | `# Reimbursement` | How and when the debt to the anställd was (or will be) reglerad, and against which account/Verification/Payslip. |
 | `# Citations`     | As OKF §8 — the legal or documentary basis, if not obvious from context.                 |
 
-#### 4.10.3 Example
+#### 4.11.3 Example
 
 ```markdown
 ---
@@ -1579,69 +1791,284 @@ en andra gång som lön.
 
 ---
 
+### 4.12 `Employer Tax Declaration`
+
+An `Employer Tax Declaration` concept represents exactly one
+arbetsgivardeklaration: the monthly report an arbetsgivare must file
+with Skatteverket for one redovisningsperiod, declaring the utbetalda
+ersättningar, gjorda skatteavdrag, and arbetsgivaravgifter for that
+month (SFL 26 kap.). It sits *above* `Payslip` (§4.9) the way `Fiscal
+Year` (§4.3) sits above `Verification` (§4.2): a single
+arbetsgivardeklaration aggregates a whole period's löneutbetalningar
+into one huvuduppgift for the company and one individuppgift per
+betalningsmottagare — each individuppgift corresponding to one
+`Payslip` (§4.9) — and the whole declaration reconciles against the
+löneutbetalning `Verification`(s) (§4.2) that booked the month's lön.
+
+Unlike the momsdeklaration, which §4.10 lets tooling derive by summing
+`Verification` postings through the `Chart of Accounts`' account-to-fält
+mapping, an arbetsgivardeklaration has no equivalent bundle-wide mapping
+to roll up through: its individuppgifter are per-anställd and already
+materialized as `Payslip` concepts (§4.9). This profile therefore
+represents the arbetsgivardeklaration as a stored concept that records
+the period's assembled huvuduppgift and individuppgifter — and, in its
+body, how they were derived — rather than as a mapping from which they
+would be recomputed.
+
+Concept ID convention: place employer tax declarations under an
+`employer-tax-declarations/` subdirectory, one file per
+redovisningsperiod, e.g. `employer-tax-declarations/2026-02.md`.
+Producers SHOULD name the file after the `period` (`YYYY-MM`) so the
+declaration for a given month can be located without opening it.
+
+#### 4.12.1 Frontmatter
+
+```yaml
+---
+type: Employer Tax Declaration     # REQUIRED (OKF §4.1)
+period: <YYYY-MM>                  # REQUIRED
+organization_number: <string>     # REQUIRED
+status: draft | final             # REQUIRED
+total_employer_contributions: <decimal> <ISO 4217 code>  # REQUIRED
+total_tax_withheld: <decimal> <ISO 4217 code>            # REQUIRED
+submitted_date: <ISO 8601 date>   # REQUIRED when status: final
+filing_deadline: <ISO 8601 date>  # Recommended
+payslips: [<Concept ID>, …]       # Recommended
+verifications: [<Concept ID>, …]  # Recommended
+title: <Optional display name>    # Recommended (OKF §4.1)
+description: <Optional one-line summary>  # Recommended (OKF §4.1)
+resource: <Optional URI to source document>  # Recommended (OKF §4.1)
+tags: [<tag>, …]                  # Optional (OKF §4.1)
+timestamp: <ISO 8601 datetime>    # Recommended (OKF §4.1)
+---
+```
+
+The generic OKF fields (`type`, `title`, `description`, `resource`,
+`tags`, `timestamp`) keep their OKF §4.1 meaning.
+
+**Required**, per SFL 26 kap. (arbetsgivardeklaration med huvuduppgift
+och individuppgift):
+
+- `period` — the redovisningsperiod the declaration covers, as
+  `YYYY-MM` (Skatteverkets fältkod FK006). One arbetsgivardeklaration is
+  filed per calendar month.
+- `organization_number` — the arbetsgivarens organisationsnummer
+  (FK201), identifying the company that filed the declaration — the same
+  organisationsnummer recorded once, bundle-wide, in the `Organization`
+  concept (§4.1).
+- `status` — whether the declaration is still being assembled (`draft`)
+  or has been filed with Skatteverket (`final`). Mirrors
+  `Fiscal Year.status` (§4.3.1): a `draft` declaration MAY still have
+  incomplete underlag (described in the body), whereas a `final` one has
+  been submitted and its huvuduppgift and individuppgifter are complete.
+- `total_employer_contributions` — the summa arbetsgivaravgifter och
+  särskild löneskatt for the period (FK487), including currency; the
+  huvuduppgift's aggregate avgiftsbelopp.
+- `total_tax_withheld` — the summa avdragen skatt for the period
+  (FK497), including currency; the huvuduppgift's aggregate skatteavdrag.
+
+**Required when applicable**:
+
+- `submitted_date` — the date the declaration was lämnad (filed) to
+  Skatteverket. Required once `status` is `final`, mirroring
+  `Fiscal Year.closing_date` (§4.3.1). SFL 26 kap. requires the
+  declaration to be filed by a deadline — normally the 12th of the month
+  after the redovisningsperiod, the 17th for the January and August
+  periods — so `submitted_date` SHOULD fall on or before
+  `filing_deadline`.
+
+**Recommended**:
+
+- `filing_deadline` — the date by which the declaration must be filed:
+  normally the 12th of the month following `period`, or the 17th for the
+  January and August periods. Derivable from `period`, so recommended
+  rather than required, but producers SHOULD populate it to make the
+  deadline checkable by tooling.
+- `payslips` — the Concept IDs of the `Payslip` concepts (§4.9) whose
+  löneperioder fall in this redovisningsperiod, one per individuppgift,
+  rather than repeating each anställd's figures in free text.
+- `verifications` — the Concept IDs of the löneutbetalning
+  `Verification` concepts (§4.2) the huvuduppgift is reconciled against,
+  so tooling can check that FK487/FK497 tie to the booked personalskatt
+  and sociala avgifter.
+
+**Huvuduppgift and individuppgifter**, per SFL 26 kap.:
+
+The per-betalningsmottagare individuppgifter are per-anställd data, not
+a single scalar, so — like a `Fiscal Year`'s balances (§4.3.1) or a
+`Chart of Accounts`' accounts (§4.10.1) — they belong in the body as a
+table, not in frontmatter:
+
+- An `Employer Tax Declaration` concept MUST include a `# Huvuduppgift`
+  body section (§4.12.2), stating the company-level fältkoder for the
+  period — at least FK487 (`total_employer_contributions`) and FK497
+  (`total_tax_withheld`). A huvuduppgift is filed once per
+  redovisningsperiod for the whole company.
+- An `Employer Tax Declaration` concept MUST include an
+  `# Individuppgift` body section (§4.12.2), with one row per
+  betalningsmottagare: FK215 (personnummer/samordningsnummer), FK011
+  (kontant ersättning som är underlag för arbetsgivaravgifter), any
+  FK012/FK013 (skattepliktiga förmåner), FK001 (avdragen skatt), and —
+  when the arbetsgivare has more than one arbetsställe — FK060
+  (arbetsställenummer), resolved to a specific arbetsställe via the
+  `Organization` concept (§4.1). SFL 26 kap. requires an individuppgift
+  per betalningsmottagare; a declaration that states only period totals
+  does not meet that bar.
+
+#### 4.12.2 Conventional body sections
+
+In addition to the OKF §4.2 conventional headings, `Employer Tax
+Declaration` concepts SHOULD use:
+
+| Heading            | Purpose                                                                                                          |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `# Period`         | The redovisningsperiod and its filing deadline.                                                                  |
+| `# Huvuduppgift`   | The period's company-level fältkoder (FK487, FK497, and underlag). REQUIRED.                                     |
+| `# Individuppgift` | One row per betalningsmottagare (FK215, FK011, FK012/FK013, FK001), each linked to its `Employee` (§4.8)/`Payslip` (§4.9). REQUIRED. |
+| `# Derivation`     | How the huvuduppgift and individuppgifter were derived from the period's `Payslip` concepts and löneutbetalning `Verification`(s). |
+| `# Citations`      | As OKF §8 — the legal or documentary basis, if not obvious from context.                                         |
+
+#### 4.12.3 Example
+
+```markdown
+---
+type: Employer Tax Declaration
+period: "2026-06"
+organization_number: "556789-0123"
+status: draft
+total_employer_contributions: 10240.00 SEK
+total_tax_withheld: 8100.00 SEK
+filing_deadline: 2026-07-12
+payslips: ["payslips/2026/anna-svensson-2026-06"]
+verifications: ["verifications/2026/000201"]
+title: Arbetsgivardeklaration — juni 2026
+timestamp: 2026-07-01T09:00:00Z
+---
+
+Arbetsgivardeklaration för Company AB (org.nr 556789-0123) avseende
+redovisningsperioden juni 2026. Härledd från månadens enda
+lönespecifikation och den bokförda löneutbetalningen. Ännu inte lämnad
+till Skatteverket (`status: draft`).
+
+# Period
+
+Redovisningsperiod 2026-06 (2026-06-01 – 2026-06-30). Ska enligt SFL
+26 kap. lämnas senast 2026-07-12 (den 12:e i månaden efter perioden).
+
+# Huvuduppgift
+
+En huvuduppgift lämnas per redovisningsperiod, för hela företaget.
+
+| Fältkod | Beskrivning                        | Belopp        |
+| ------- | ----------------------------------- | -------------: |
+| FK006   | Redovisningsperiod                  | 2026-06        |
+| FK201   | Arbetsgivarens organisationsnummer  | 556789-0123    |
+| FK487   | Summa arbetsgivaravgifter och SLF   | 10 240.00 SEK  |
+| FK497   | Summa avdragen skatt                | 8 100.00 SEK   |
+
+# Individuppgift
+
+En individuppgift per betalningsmottagare, härledd ur månadens
+[`Payslip`](/payslips/2026/anna-svensson-2026-06.md)-koncept.
+
+| Betalningsmottagare                          | FK215         | FK011         | FK001        |
+| --------------------------------------------- | ------------- | -------------: | -----------: |
+| [Anna Svensson](/employees/anna-svensson.md)  | 19850612-1234 | 32 000.00 SEK  | 8 100.00 SEK |
+
+# Derivation
+
+FK011 = lönespecifikationens bruttolön (32 000.00 SEK); FK001 =
+Payslip-fältet `tax_withheld` (8 100.00 SEK); FK487 =
+`employer_contributions` (10 240.00 SEK) — samtliga hämtade ur
+[payslips/2026/anna-svensson-2026-06](/payslips/2026/anna-svensson-2026-06.md).
+Huvuduppgiftens FK497 (8 100.00 SEK) stäms av mot personalskatten och
+FK487 mot de sociala avgifterna i
+[verifications/2026/000201](/verifications/2026/000201.md).
+
+# Citations
+
+[1] Skatteförfarandelagen (SFL) 26 kap.
+[2] Skatteverket, "Så fyller du i arbetsgivardeklarationen – ruta för
+    ruta":
+    https://www.skatteverket.se/foretag/arbetsgivare/lamnaarbetsgivardeklaration/safyllerduiarbetsgivardeklarationen.4.2cf1b5cd163796a5c8b66a8.html
+```
+
+---
+
 ## 6. Conformance
 
 A bundle is conformant with this profile if it satisfies OKF v0.1
 conformance (OKF §9) **and**, additionally:
 
+- every concept with `type: Organization` has `title` and
+  `organization_number`, plus `vat_number` whenever the company is
+  registered for VAT and `workplace_number` whenever the company has been
+  assigned an arbetsställenummer; and includes an `# Arbetsställen` body
+  section (§4.1.2) whenever the company has more than one arbetsställe
+  (§4.1.1).
 - every concept with `type: Verification` has all fields listed as
-  "Required" in §4.1.1, plus `supporting_documents` whenever the
+  "Required" in §4.2.1, plus `supporting_documents` whenever the
   underlying affärshändelse in fact had a referenced agreement or
   document;
 - every concept with `type: Fiscal Year` has all fields listed as
-  "Required" in §4.2.1, plus `closing_date` and `closing_method`
+  "Required" in §4.3.1, plus `closing_date` and `closing_method`
   whenever `status` is `closed`; includes an `# Opening Balances` body
-  section (§4.2.2); and includes a `# Closing Balances` body section
-  (§4.2.2) whenever `status` is `closed`.
+  section (§4.3.2); and includes a `# Closing Balances` body section
+  (§4.3.2) whenever `status` is `closed`.
 - every concept with `type: Supplier` has `company_number` and
   `vat_number` whenever the underlying leverantör in fact has such a
   number, and at least one of `bankgiro`, `plusgiro`, or
-  `bank_account` whenever the supplier is paid electronically (§4.3.1).
+  `bank_account` whenever the supplier is paid electronically (§4.4.1).
 - every concept with `type: Supplier Invoice` has all fields listed as
-  "Required" in §4.4.1, plus `vat_amount` whenever the purchase carries
+  "Required" in §4.5.1, plus `vat_amount` whenever the purchase carries
   Swedish VAT, `payment_date` whenever `payment_status` is `paid`, and
   `currency`/`exchange_rate` whenever the invoice is issued in a
-  foreign currency (§4.4.1).
+  foreign currency (§4.5.1).
 - every concept with `type: Customer` has `title`, plus
   `customer_number`, `company_number`, and `vat_number` whenever the
-  underlying kund in fact has such an identifier (§4.5.1).
+  underlying kund in fact has such an identifier (§4.6.1).
 - every concept with `type: Customer Invoice` has all fields listed as
-  "Required" in §4.6.1, plus `vat_amount` whenever the sale carries
+  "Required" in §4.7.1, plus `vat_amount` whenever the sale carries
   Swedish VAT, `payment_date` whenever `payment_status` is `paid`, and
   `currency`/`exchange_rate` whenever the invoice is issued in a
-  foreign currency (§4.6.1).
+  foreign currency (§4.7.1).
 - every concept with `type: Employee` has `title`, plus
   `personal_number`, `address`, `tax_table`, `tax_adjustment`, and
   `bank_account` whenever the underlying anställd in fact has such
   data on file; `tax_column` whenever `tax_table` is present; and
-  `end_date` whenever the anställning has ended (§4.7.1).
+  `end_date` whenever the anställning has ended (§4.8.1).
 - every concept with `type: Payslip` has all fields listed as
-  "Required" in §4.8.1, plus `other_deductions` whenever a deduction
-  beyond `tax_withheld` was made (§4.8.1).
+  "Required" in §4.9.1, plus `other_deductions` whenever a deduction
+  beyond `tax_withheld` was made (§4.9.1).
 - every concept with `type: Chart of Accounts` includes an `# Accounts`
-  body section (§4.9.2) listing every account number and account name
+  body section (§4.10.2) listing every account number and account name
   the bookkeeping system uses, with the VAT Declaration Field populated
   for every account whose transactions map to a field of the periodic
-  mervärdesskattedeklaration (§4.9.1).
+  mervärdesskattedeklaration (§4.10.1).
 - every concept with `type: Expense` has all fields listed as
-  "Required" in §4.10.1 — including `resource`, promoted from OKF's
+  "Required" in §4.11.1 — including `resource`, promoted from OKF's
   generic Recommended — plus `vat_amount` whenever the utlägg carried
   Swedish VAT, `reimbursement_date` whenever `reimbursement_status` is
   `paid`, and `currency`/`exchange_rate` whenever the utlägg was paid
-  in a foreign currency (§4.10.1).
+  in a foreign currency (§4.11.1).
+- every concept with `type: Employer Tax Declaration` has all fields
+  listed as "Required" in §4.12.1, plus `submitted_date` whenever
+  `status` is `final`; includes a `# Huvuduppgift` body section
+  (§4.12.2); and includes an `# Individuppgift` body section (§4.12.2)
+  with one row per betalningsmottagare (§4.12.1).
 
 As with OKF itself (OKF §9), consumers MUST NOT reject a
 `Verification`, `Fiscal Year`, `Supplier`, `Supplier Invoice`,
 `Customer`, `Customer Invoice`, `Employee`, `Payslip`, `Chart of
-Accounts`, or `Expense` concept over missing "Recommended" fields —
-only over missing "Required" (or applicable "Required when
-applicable") fields.
+Accounts`, `Expense`, `Employer Tax Declaration`, or `Organization`
+concept over missing "Recommended" fields — only over missing "Required"
+(or applicable "Required when applicable") fields.
 
 ---
 
 ## 7. Citations
 
-The requirements in §4.1, §4.3, §4.4, §4.5, and §4.6 are drawn directly
+The requirements in §4.2, §4.4, §4.5, §4.6, and §4.7 are drawn directly
 from the Bokföringslag (BFL, SFS 1999:1078); for `Supplier`'s and
 `Customer`'s VAT numbers and `Supplier Invoice`'s/`Customer Invoice`'s
 invoice-content fields, the Mervärdesskattelag (ML, SFS 2023:200); for
@@ -1650,17 +2077,25 @@ the Årsredovisningslag (ÅRL, SFS 1995:1554); for `Supplier
 Invoice`'s `received_date`/`sequence_number` and `Customer`'s
 `customer_number`, Bokföringsnämndens allmänna råd om bokföring (BFNAR
 2013:2); for `Employee`'s identifying and tax-withholding fields
-(§4.7), the Skatteförfarandelag (SFL, SFS 2011:1244) and, for the
+(§4.8), the Skatteförfarandelag (SFL, SFS 2011:1244) and, for the
 `tax_table` exception, Lag (1991:586) om särskild inkomstskatt för
 utomlands bosatta (SINK); for `Payslip`'s ersättnings- and
-skatteavdrag fields (§4.8), the same Bokföringslag provisions as §4.1
-and the same Skatteförfarandelag provisions as §4.7; for `Chart of
-Accounts` (§4.9), the Bokföringslag's systemdokumentation requirement
+skatteavdrag fields (§4.9), the same Bokföringslag provisions as §4.2
+and the same Skatteförfarandelag provisions as §4.8; for `Chart of
+Accounts` (§4.10), the Bokföringslag's systemdokumentation requirement
 for the concept type's existence, and the Mervärdesskattelag together
 with the Skatteförfarandelag's periodic skattedeklaration provisions
-for the VAT-declaration-field mapping itself; and for `Expense`'s
-kvitto and reimbursement fields (§4.10), the same Bokföringslag
-provisions as §4.1:
+for the VAT-declaration-field mapping itself; for `Expense`'s
+kvitto and reimbursement fields (§4.11), the same Bokföringslag
+provisions as §4.2; and for `Employer Tax Declaration`'s huvuduppgift
+and individuppgift fields (§4.12), the Skatteförfarandelag's
+arbetsgivardeklaration provisions (SFL 26 kap., the same chapter as
+§4.8's AGI reference) together with Skatteverkets fältkoder for the
+declaration's blankett; and for `Organization` (§4.1), the same
+Skatteförfarandelag arbetsgivardeklaration provisions (SFL 26 kap.) for
+the organisationsnummer (FK201) and arbetsställenummer (FK060), together
+with Statistiska centralbyråns Företagsregister for the arbetsställenummer
+(CFAR-nummer) itself:
 
 [1] BFL 1 kap. 2 §, 6–7 p. — definitions of *affärshändelse* and
     *verifikation*.
@@ -1697,7 +2132,7 @@ provisions as §4.1:
 [12] Lag (1991:586) om särskild inkomstskatt för utomlands bosatta
      (SINK) — the flat-rate alternative to table-based skatteavdrag for
      an anställd bosatt utomlands, relevant to the `tax_table`
-     exception in §4.7.1.
+     exception in §4.8.1.
 [13] BFL 5 kap. 1 § — the duty to maintain a systemdokumentation
      describing the bookkeeping system's organisation and structure,
      "så att sambanden mellan systemdokumentationen och den löpande
@@ -1715,3 +2150,27 @@ provisions as §4.1:
      verifikationsunderlag, as illustrated by a bookkeeping guide's own
      worked example of Skatteverket requalifying an undocumented utlägg
      as taxable lön.
+[16] SFL 26 kap. — same chapter as [10], viewed here as the basis for
+     the `Employer Tax Declaration` concept type as a whole: the duty to
+     file an arbetsgivardeklaration per redovisningsperiod, comprising a
+     huvuduppgift for the company and an individuppgift per
+     betalningsmottagare, and the tidpunkt för lämnande (normally the
+     12th of the month after the redovisningsperiod, the 17th for the
+     January and August periods).
+[17] Skatteverket, "Så fyller du i arbetsgivardeklarationen – ruta för
+     ruta" — the fältkoder (FK006, FK201, FK011, FK012, FK013, FK001,
+     FK215, FK487, FK497, …) used in the huvuduppgift and individuppgift.
+     As with [6] and [14], the specific fältkod numbering is set by
+     Skatteverket's blankett, not by a paragraf in SFL, so this citation
+     is at the form level.
+     https://www.skatteverket.se/foretag/arbetsgivare/lamnaarbetsgivardeklaration/safyllerduiarbetsgivardeklarationen.4.2cf1b5cd163796a5c8b66a8.html
+[18] SFL 26 kap. — same chapter as [10] and [16], the basis for
+     `Organization`'s arbetsgivardeklaration-relaterade fält: the
+     arbetsgivarens organisationsnummer (FK201) in the huvuduppgift, and
+     the arbetsställenummer (FK060) reported per betalningsmottagare in the
+     individuppgift when the arbetsgivare has more than one arbetsställe.
+[19] Statistiska centralbyrån (SCB), Företagsregistret — the
+     arbetsställenummer (CFAR-nummer) assigned to each arbetsställe. As
+     with [6], [14], and [17], the numbering is set by an authority's
+     register/blankett rather than by a paragraf in law, so this citation
+     is at the register level.
