@@ -32,7 +32,11 @@ hatch that OKF explicitly allows (OKF §4.1, "Extensions") and uses it to:
 - require, per type, the body sections that carry the per-row data
   frontmatter cannot express — a verifikation's konteringar, a
   räkenskapsårs balanser, a kontoplans konton, a deklarations rutor and
-  individuppgifter (§4.x.2).
+  individuppgifter (§4.x.2); and
+- reserve an `archive/` directory (§5) where the underlag those types
+  reference — kvitton, fakturor, kontoutdrag, importfiler — are kept in
+  the form they were received, so that a bundle carries its own
+  räkenskapsinformation instead of pointing outside itself.
 
 Those types are not a flat list. The `Verification` (§4.2) is the
 grundmaterial BFL requires for every affärshändelse; the rest exist
@@ -53,7 +57,7 @@ Skatteförfarandelag (SFL), the Årsredovisningslag (ÅRL), and
 Bokföringsnämndens allmänna råd (BFNAR), with fält- och rutanumrering
 taken from Skatteverkets blanketter and arbetsställenummer from
 Statistiska centralbyråns Företagsregister. See
-[Citations](#6-citations) for the specific references.
+[Citations](#7-citations) for the specific references.
 
 ---
 
@@ -153,7 +157,7 @@ In addition to the terms defined in OKF §2, this profile uses:
   reimbursement status explicit and checkable.
 - **Kontoplan (Chart of Accounts)** — a bookkeeping system's complete
   list of accounts, each account's number and name, forming part of
-  the systemdokumentation BFL 5 kap. 1 § requires (§6 [13]). This
+  the systemdokumentation BFL 5 kap. 1 § requires (§7 [13]). This
   profile's `Chart of Accounts` concept type (§4.10) represents the
   kontoplan bundle-wide, one file per bundle rather than per
   räkenskapsår or per account — mirroring how `Supplier` (§4.4),
@@ -220,6 +224,19 @@ In addition to the terms defined in OKF §2, this profile uses:
   company's arbetsställen and their CFAR-nummer, so each `Employee`'s
   (§4.8) FK060 in an `Employer Tax Declaration`'s (§4.12) individuppgift
   resolves to an address.
+- **Arkiv (Archive)** — the `archive/` directory at the bundle root,
+  where räkenskapsinformation is kept in the form it was received or
+  transferred to: the kvitton, fakturor, kontoutdrag,
+  lönespecifikationer, deklarationsfiler, and import-underlag that the
+  concepts describe but are not themselves. BFL requires both that such
+  material be preserved (7 kap. 1–2 §§) and that a verifikation state
+  "var de finns tillgängliga" (5 kap. 6–7 §§); the arkiv is where a
+  bundle answers both at once. Its files are not concepts — OKF §3.1
+  makes only `.md` files concept documents — so they carry no
+  frontmatter and are reached by path: a `Verification`'s `resource` and
+  `supporting_documents` (§4.2.1) point into the arkiv, and an
+  `Expense`'s `resource` (§4.11.1), which this profile promotes from
+  Recommended to required, MUST do so. See §5.
 
 ---
 
@@ -483,13 +500,18 @@ recommended, and its content is constrained as specified below.
   where it can be found. Required only "i förekommande fall" —
   when such documents exist; a verification with no underlying
   agreement or referenced document (e.g. some bokföringsorder
-  corrections) MAY omit it.
+  corrections) MAY omit it. When the handling is archived in the
+  bundle's arkiv, the entry SHOULD state its bundle-relative path
+  (§5) — that path is what answers "var de finns tillgängliga".
 
 **Recommended**:
 
 - `resource` — a URI to the scanned/original source document (kvitto,
-  faktura, kontoutdrag, etc.), when one exists. Omit for a
-  bokföringsorder that has no external document.
+  faktura, kontoutdrag, etc.), when one exists. SHOULD be a
+  bundle-relative path under `archive/` (§5) when the document is
+  archived with the bundle; an external URI is permitted but leaves the
+  underlag outside it. Omit for a bokföringsorder that has no external
+  document.
 - `retention_until` — BFL requires every verification to be preserved
   for seven years ("ska bevaras i sju år"). This field is not part
   of the verifikation's own content, so it is recommended rather than
@@ -524,9 +546,10 @@ recorded_date: 2026-07-01
 description: Inköp av kontorsmaterial från Kontorsvaruhuset AB
 amount: 1250.00 SEK
 counterparty: Kontorsvaruhuset AB
-supporting_documents: ["Leverantörsfaktura #KV-88213"]
+supporting_documents:
+  - "Leverantörsfaktura #KV-88213, /archive/leverantorsfakturor/2026/KV-88213.pdf"
 title: Inköp kontorsmaterial — faktura KV-88213
-resource: "file:///arkiv/leverantorsfakturor/2026/KV-88213.pdf"
+resource: "/archive/leverantorsfakturor/2026/KV-88213.pdf"
 tags: [external, leverantorsfaktura]
 timestamp: 2026-07-01T09:15:00Z
 retention_until: 2033-07-01
@@ -546,7 +569,7 @@ avseende kontorsmaterial till kontoret, mottagen 2026-06-30.
 # Supporting Documents
 
 - Leverantörsfaktura #KV-88213, arkiverad under
-  `/arkiv/leverantorsfakturor/2026/KV-88213.pdf`.
+  `/archive/leverantorsfakturor/2026/KV-88213.pdf`.
 
 # Citations
 
@@ -964,7 +987,7 @@ payment_status: unpaid
 verification: "verifications/2026/000123"
 payment_terms: 30 dagar netto
 title: Leverantörsfaktura KV-88213 — Kontorsvaruhuset AB
-resource: "file:///arkiv/leverantorsfakturor/2026/KV-88213.pdf"
+resource: "/archive/leverantorsfakturor/2026/KV-88213.pdf"
 timestamp: 2026-06-30T08:00:00Z
 ---
 
@@ -1731,7 +1754,7 @@ employee: <Concept ID>             # REQUIRED
 expense_date: <ISO 8601 date>      # REQUIRED
 description: <string>              # REQUIRED
 amount: <decimal> <ISO 4217 code>  # REQUIRED
-resource: <URI to receipt/kvitto>  # REQUIRED
+resource: </archive/… path to kvitto>  # REQUIRED
 reimbursement_status: unpaid | paid  # REQUIRED
 vat_amount: <decimal> <ISO 4217 code>  # REQUIRED when applicable
 reimbursement_date: <ISO 8601 date>    # REQUIRED when applicable
@@ -1764,11 +1787,14 @@ not merely recommended, for the reason given above.
   trängselskatt. Stricter than OKF's generic "one-sentence summary"
   (OKF §4.1), mirroring `Verification.description` (§4.2.1).
 - `amount` — the total sum the anställd paid, including any moms.
-- `resource` — a URI to the kvitto: promoted to required, since a
-  bookkeeping guide notes that "den anställde måste spara alla kvitton
-  för att det ska betraktas som ett utlägg och vara avdragsgillt för
-  företaget" — without a referenced kvitto, an `Expense` concept does
-  not evidence an utlägg at all.
+- `resource` — the kvitto: promoted to required, since a bookkeeping
+  guide notes that "den anställde måste spara alla kvitton för att det
+  ska betraktas som ett utlägg och vara avdragsgillt för företaget" —
+  without a referenced kvitto, an `Expense` concept does not evidence an
+  utlägg at all. For the same reason the value MUST be a bundle-relative
+  path under `archive/` (§5) resolving to a file that is present: an
+  external URI records that a kvitto once existed, not that it has been
+  preserved.
 - `reimbursement_status` — whether the debt to the anställd is still
   owed (`unpaid`) or has been settled (`paid`). Exists so that, when
   reglering happens via the next `Payslip` (§4.9) rather than a direct
@@ -1818,7 +1844,7 @@ expense_date: 2026-06-03
 description: Kontorsmaterial inköpt med privata medel till kontoret
 amount: 450.00 SEK
 vat_amount: 90.00 SEK
-resource: "file:///arkiv/kvitton/2026/anna-svensson-kontorsmaterial-2026-06-03.pdf"
+resource: "/archive/kvitton/2026/anna-svensson-kontorsmaterial-2026-06-03.pdf"
 reimbursement_status: paid
 reimbursement_date: 2026-06-25
 verification: "verifications/2026/000178"
@@ -1836,7 +1862,7 @@ bokfördes samma dag som en skuld till Anna. Skulden reglerades
 # Receipt
 
 Kvitto från Kontorsvaruhuset AB, utställt på Anna Svensson, arkiverat
-under `/arkiv/kvitton/2026/anna-svensson-kontorsmaterial-2026-06-03.pdf`.
+under `/archive/kvitton/2026/anna-svensson-kontorsmaterial-2026-06-03.pdf`.
 
 # Reimbursement
 
@@ -2355,7 +2381,83 @@ momsdeklarationen.
 
 ---
 
-## 5. Conformance
+## 5. Archive
+
+The concept types in §4 describe affärshändelser and the parties to
+them; they are not the underlag those descriptions rest on. A kvitto, a
+mottagen leverantörsfaktura, a kontoutdrag, an inlämnad
+deklarationsfil, or the SIE-, CSV-, or Excel-fil an earlier
+bokföring was imported from is räkenskapsinformation in its own right,
+and BFL requires it to be preserved — "i ordnat skick och på
+betryggande och överskådligt sätt" for seven years after the end of the
+kalenderår in which the räkenskapsår ended (7 kap. 1–2 §§) — and each
+verifikation to state "var de finns tillgängliga" (5 kap. 6–7 §§).
+
+This profile answers both with one convention: a bundle keeps that
+material in an `archive/` directory at its root.
+
+```
+bundle/
+├── index.md
+├── organization.md
+├── chart-of-accounts.md
+├── verifications/2026/000123.md
+├── expenses/2026/anna-svensson-2026-06-03.md
+└── archive/
+    ├── leverantorsfakturor/2026/KV-88213.pdf
+    ├── kvitton/2026/anna-svensson-kontorsmaterial-2026-06-03.pdf
+    ├── kontoutdrag/2026/2026-06.csv
+    └── import/2024-2025-sie4.se
+```
+
+**Archived files are not concepts.** OKF §3.1 makes every non-reserved
+`.md` file a concept document; an arkivfil is a PDF, CSV, XLSX, SIE,
+XML, or image and therefore falls outside that model entirely — it has
+no frontmatter and no `type`, and consumers reach it by path rather
+than by Concept ID. To keep that distinction decidable without parsing,
+producers MUST NOT place concept documents under `archive/`. A bundle
+remains OKF-conformant either way: OKF §9 constrains `.md` files only.
+
+**Referencing an archived file.** Concepts point into the arkiv with a
+bundle-relative path (OKF §5.1) — `/archive/kvitton/2026/…pdf` — both
+in `resource` and in ordinary markdown links in the body. This is the
+recommended form for the same reason OKF gives: it survives the bundle
+being cloned, zipped, or moved, which a `file:///` URI into the
+producer's own filesystem does not. A concept MAY carry an external URI
+instead when the original is held in a system outside the bundle, but
+the bundle then no longer carries its own räkenskapsinformation.
+
+**When the underlag is required.** Where this profile promotes
+`resource` from OKF's Recommended to **Required** — today `Expense`
+(§4.11.1), whose kvitto is what distinguishes an utlägg from taxable
+lön — the value MUST be a bundle-relative path under `archive/`
+resolving to a file that is present in the bundle. An external URI does
+not satisfy the requirement: the rule exists to establish that the
+kvitto is preserved, not that it was seen once.
+
+**Organizing the arkiv.** Subdirectories SHOULD mirror the concept
+directories they serve — `archive/leverantorsfakturor/2026/` alongside
+`supplier-invoices/2026/`, `archive/kvitton/2026/` alongside
+`expenses/2026/` — and filenames SHOULD reuse the referencing concept's
+business identifier (`KV-88213.pdf`) or its Concept ID slug
+(`anna-svensson-2026-06-03.pdf`), so a file and the concept describing
+it can be found from each other. Beyond that this profile fixes no
+taxonomy; an `archive/import/` holding the filer an earlier bokföring
+was imported from is as legitimate a subdirectory as one named after a
+concept type.
+
+**Preservation.** An arkivfil inherits the arkiveringsplikt of the
+verifikation that references it: `Verification.retention_until`
+(§4.2.1) covers the verifikation *and* the underlag it names, since BFL
+7 kap. 2 § counts both as räkenskapsinformation. A scanned pappersfaktura
+placed in the arkiv is an överföring to another form under BFL 7 kap.
+6 §, which is what permits the mottagna originalet to be destroyed
+before the seven years are up — provided the transfer was done "på ett
+betryggande sätt", i.e. the scan is legible, complete, and kept.
+
+---
+
+## 6. Conformance
 
 A bundle is conformant with this profile if it satisfies OKF v0.1
 conformance (OKF §9) **and**, additionally:
@@ -2410,7 +2512,9 @@ conformance (OKF §9) **and**, additionally:
   generic Recommended — plus `vat_amount` whenever the utlägg carried
   Swedish VAT, `reimbursement_date` whenever `reimbursement_status` is
   `paid`, and `currency`/`exchange_rate` whenever the utlägg was paid
-  in a foreign currency (§4.11.1).
+  in a foreign currency (§4.11.1); and its `resource` is a
+  bundle-relative path under `archive/` resolving to a file present in
+  the bundle (§5).
 - every concept with `type: Employer Tax Declaration` has all fields
   listed as "Required" in §4.12.1, plus `submitted_date` whenever
   `status` is `final`; includes a `# Huvuduppgift` body section
@@ -2423,6 +2527,9 @@ conformance (OKF §9) **and**, additionally:
   per ifyllt fält, fält 49 among them in every period; and includes an
   `# Avstämning` body section recording the omföring to
   momsredovisningskontot (§4.13.1).
+- no concept document (`.md`) is placed under `archive/`, and every
+  bundle-relative `resource` or `supporting_documents` path pointing
+  into `archive/` resolves to a file present in the bundle (§5).
 
 As with OKF itself (OKF §9), consumers MUST NOT reject a
 `Verification`, `Fiscal Year`, `Supplier`, `Supplier Invoice`,
@@ -2433,7 +2540,7 @@ missing "Required" (or applicable "Required when applicable") fields.
 
 ---
 
-## 6. Citations
+## 7. Citations
 
 The requirements in §4.2, §4.4, §4.5, §4.6, and §4.7 are drawn directly
 from the Bokföringslag (BFL, SFS 1999:1078); for `Supplier`'s and
@@ -2467,7 +2574,10 @@ blankett and vägledning; and for `Organization` (§4.1), the same
 Skatteförfarandelag arbetsgivardeklaration provisions (SFL 26 kap.) for
 the organisationsnummer (FK201) and arbetsställenummer (FK060), together
 with Statistiska centralbyråns Företagsregister for the arbetsställenummer
-(CFAR-nummer) itself:
+(CFAR-nummer) itself; and for the `archive/` directory (§5), the
+Bokföringslag's arkiveringsbestämmelser (BFL 7 kap.) together with the
+same 5 kap. 6–7 §§ provisions as §4.2 for the duty to state where an
+underlag is available:
 
 [1] BFL 1 kap. 2 §, 6–7 p. — definitions of *affärshändelse* and
     *verifikation*.
@@ -2573,3 +2683,17 @@ with Statistiska centralbyråns Företagsregister for the arbetsställenummer
      keeps "sambanden mellan systemdokumentationen och den löpande
      bokföringen" readable from a filed momsdeklaration back to the
      verifikationer it summarises.
+[23] BFL 7 kap. 1–2 §§ — the forms räkenskapsinformation may be
+     preserved in (dokument, mikroskrift, maskinläsbart medium), and the
+     duty to preserve it "i ordnat skick och på betryggande och
+     överskådligt sätt" until the seventh year after the end of the
+     kalenderår in which the räkenskapsår ended. This is the same
+     seven-year duty §4.2.1's `retention_until` makes checkable, applied
+     in §5 to the underlag a verifikation references rather than to the
+     verifikation itself.
+[24] BFL 7 kap. 6 § — överföring av räkenskapsinformation to another
+     form: material received from someone else may be destroyed from the
+     fourth year after the end of the kalenderår in which the
+     räkenskapsår ended, provided the information has been transferred
+     "på ett betryggande sätt" to the form the company preserves it in.
+     This is what a scanned pappersfaktura placed in the arkiv (§5) is.
