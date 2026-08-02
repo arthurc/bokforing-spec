@@ -1,0 +1,3 @@
+- Do not reference any document in .okf/ in the spec
+- If you need a company name, in an example section for instance, then use the name "Company AB"
+- Follow the structure and language of spec/okf-spec-v01.md when filling in information in spec/SPEC.md.

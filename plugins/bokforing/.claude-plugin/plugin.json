@@ -1,0 +1,8 @@
+{
+  "name": "bokforing",
+  "description": "Bokför underlag — fakturor, kvitton, lönespecifikationer — som verifikationer i en Accounting Knowledge Bundle, enligt svensk bokföringslag. Klassificerar underlaget, härleder konteringen ur bundlens tidigare bokföring, och bekräftar med användaren innan något skrivs.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Arthur Hartwig Carlsson"
+  }
+}

@@ -3,12 +3,12 @@
 **Version 0.1 — Draft**
 
 This document specifies how bookkeeping ("bokföring") knowledge is
-represented as an [Open Knowledge Format](./okf-spec-v01.md) (OKF)
-bundle. It is a **profile** of OKF v0.1 (see [`okf-spec-v01.md`](./okf-spec-v01.md))
+represented as an [Open Knowledge Format](./reference/okf-spec-v01.md) (OKF)
+bundle. It is a **profile** of OKF v0.1 (see [`okf-spec-v01.md`](./reference/okf-spec-v01.md))
 for the accounting domain: every rule in OKF v0.1 applies unless this
 document explicitly narrows it. Where this document uses a section
 number in parentheses, e.g. "(OKF §4.1)", it refers to the
-corresponding section of [`okf-spec-v01.md`](./okf-spec-v01.md).
+corresponding section of [`okf-spec-v01.md`](./reference/okf-spec-v01.md).
 
 ---
 

@@ -1,0 +1,11 @@
+#!/bin/sh
+# Each plugins/*/reference must be an exact copy of spec/.
+fail=0
+for ref in plugins/*/reference; do
+	[ -d "$ref" ] || continue
+	diff -r spec "$ref" || {
+		echo "^ $ref is out of sync with spec/  ->  rm -rf $ref && cp -R spec $ref && git add $ref" >&2
+		fail=1
+	}
+done
+exit $fail

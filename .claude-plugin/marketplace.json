@@ -1,0 +1,16 @@
+{
+  "name": "accounting-spec",
+  "owner": {
+    "name": "Arthur Hartwig Carlsson"
+  },
+  "description": "Plugins för bokföring enligt Accounting Knowledge Bundle Specification, en OKF-profil för svensk bokföring.",
+  "plugins": [
+    {
+      "name": "bokforing",
+      "source": "./plugins/bokforing",
+      "description": "Bokför underlag som verifikationer i en Accounting Knowledge Bundle enligt svensk bokföringslag.",
+      "category": "accounting",
+      "tags": ["bokforing", "accounting", "okf", "swedish", "bfl", "moms"]
+    }
+  ]
+}
