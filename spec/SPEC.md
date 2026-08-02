@@ -242,6 +242,13 @@ In addition to the terms defined in OKF §2, this profile uses:
 
 ## 4. Concept Types
 
+All example data in this section is fictitious. The organisationsnummer,
+momsregistreringsnummer, and personnummer that appear in the examples are
+constructed so as not to identify a real company or a real person: the
+organisationsnummer carry a valid Luhn-kontrollsiffra but are not
+registered with Bolagsverket, and the personnummer carry a deliberately
+invalid kontrollsiffra. Producers of new examples MUST do the same.
+
 ### 4.1 `Organization`
 
 An `Organization` concept represents the company itself: the juridiska
@@ -387,8 +394,8 @@ SHOULD use:
 ---
 type: Organization
 title: Company AB
-organization_number: "556789-0123"
-vat_number: "SE556789012301"
+organization_number: "559999-9991"
+vat_number: "SE559999999101"
 workplace_number: "12345678"
 f_tax_status: approved
 accounting_method: fakturametoden
@@ -401,7 +408,7 @@ technical_contact_phone: "+46 8 123 45 67"
 timestamp: 2026-07-01T09:00:00Z
 ---
 
-[Company AB](https://company.example/), org.nr 556789-0123. Bolagets egen
+[Company AB](https://company.example/), org.nr 559999-9991. Bolagets egen
 masterdata: identitet, skatteregistreringar, redovisningsmetod för moms,
 teknisk kontaktperson för deklarationer, och arbetsställen.
 Organisationsnumret här är samma FK201 som varje
@@ -1115,8 +1122,8 @@ SHOULD use:
 ---
 type: Customer
 customer_number: "K-4471"
-company_number: "556122-3344"
-vat_number: "SE556122334401"
+company_number: "556122-3347"
+vat_number: "SE556122334701"
 title: Företag AB
 address: Kundgatan 9, 111 22 Storstad
 country: SE
@@ -2024,7 +2031,7 @@ Declaration` concepts SHOULD use:
 ---
 type: Employer Tax Declaration
 period: "2026-06"
-organization_number: "556789-0123"
+organization_number: "559999-9991"
 status: draft
 total_employer_contributions: 10240.00 SEK
 total_tax_withheld: 8100.00 SEK
@@ -2035,7 +2042,7 @@ title: Arbetsgivardeklaration — juni 2026
 timestamp: 2026-07-01T09:00:00Z
 ---
 
-Arbetsgivardeklaration för Company AB (org.nr 556789-0123) avseende
+Arbetsgivardeklaration för Company AB (org.nr 559999-9991) avseende
 redovisningsperioden juni 2026. Härledd från månadens enda
 lönespecifikation och den bokförda löneutbetalningen. Ännu inte lämnad
 till Skatteverket (`status: draft`).
@@ -2052,7 +2059,7 @@ En huvuduppgift lämnas per redovisningsperiod, för hela företaget.
 | Fältkod | Beskrivning                        | Belopp        |
 | ------- | ----------------------------------- | -------------: |
 | FK006   | Redovisningsperiod                  | 2026-06        |
-| FK201   | Arbetsgivarens organisationsnummer  | 556789-0123    |
+| FK201   | Arbetsgivarens organisationsnummer  | 559999-9991    |
 | FK487   | Summa arbetsgivaravgifter och SLF   | 10 240.00 SEK  |
 | FK497   | Summa avdragen skatt                | 8 100.00 SEK   |
 
@@ -2296,8 +2303,8 @@ concepts SHOULD use:
 type: VAT Declaration
 period: "2026-02"
 period_type: månad
-organization_number: "556789-0123"
-vat_number: "SE556789012301"
+organization_number: "559999-9991"
+vat_number: "SE559999999101"
 status: final
 accounting_method: fakturametoden
 total_output_vat: 32000.00 SEK
@@ -2311,8 +2318,8 @@ title: Momsdeklaration — februari 2026
 timestamp: 2026-04-10T14:30:00Z
 ---
 
-Momsdeklaration för Company AB (org.nr 556789-0123, momsreg.nr
-SE556789012301) avseende redovisningsperioden februari 2026. Härledd ur
+Momsdeklaration för Company AB (org.nr 559999-9991, momsreg.nr
+SE559999999101) avseende redovisningsperioden februari 2026. Härledd ur
 periodens verifikationer via kontoplanens fältmappning
 ([chart-of-accounts](/chart-of-accounts.md), §4.10) och lämnad till
 Skatteverket 2026-04-10.
