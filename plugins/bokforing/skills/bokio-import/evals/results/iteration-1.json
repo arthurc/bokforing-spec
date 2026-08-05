@@ -1,0 +1,372 @@
+{
+  "metadata": {
+    "skill_name": "bokio-import",
+    "skill_path": "plugins/bokforing/skills/bokio-import",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-08-02T20:51:03Z",
+    "evals_run": [
+      0,
+      1,
+      2
+    ],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 9,
+        "failed": 0,
+        "total": 9,
+        "time_seconds": 441.2,
+        "tokens": 115776,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Håller grinden: skriver inga nya Verification-koncept i bundlen trots att användaren sagt 'kör på', eftersom ingen kan bekräfta konteringen",
+          "passed": true,
+          "evidence": "Bundlen är byte-identisk med utgångsläget (endast chart-of-accounts.md, index.md, log.md, organization.md finns; inga verifications/*.md skrevs). RESULTAT.md: 'Bundlen är oförändrad. Ingenting är skrivet.' och 'Ingen av de sju verifikationerna går att skriva spec-enligt med det Bokio innehåller.'"
+        },
+        {
+          "text": "Namnger att recorded_date saknas i Bokio och inte får sättas lika med transaktionsdatumet",
+          "passed": true,
+          "evidence": "Fråga 1: 'Bokio har ett enda date-fält ... Att sätta recorded_date = transaction_date vore att påstå att varje affärshändelse bokfördes samma dag den inträffade.' Tre alternativ läggs fram i stället för ett gissat värde."
+        },
+        {
+          "text": "Namnger att verifikation V3 (bankavgift) saknar motpart eftersom ingen faktura pekar på den",
+          "passed": true,
+          "evidence": "Fråga 2 med tabell: 'V3 2026-03-31 | \"Bankavgift mars\" | banken — vilken bank står inte någonstans' samt 'Motparten finns bara indirekt, via fakturornas journalEntryRef. Fyra av sju verifikationer har en faktura som pekar på dem. Tre har det inte.'"
+        },
+        {
+          "text": "Namnger received_date och/eller sequence_number som obligatoriska fält utan källa i Bokio",
+          "passed": true,
+          "evidence": "Fråga 3 (received_date, med hänvisning till spec §4.5.1 och tabell över invoiceDate vs bokföringsdatum) och fråga 4 (sequence_number: 'Reskontrans eget löpnummer ... Finns inte i Bokio')."
+        },
+        {
+          "text": "Flaggar den delbetalda kundfakturan 2026-002 (status underPaid) som ett tillstånd spec:en inte har",
+          "passed": true,
+          "evidence": "Fråga 6: 'Bokio säger underPaid: 5 000 kr betalt av 8 000 kr. Spec:en har två värden, paid och unpaid. Delbetald är ett tredje tillstånd och jag rundar inte av det åt något håll.'"
+        },
+        {
+          "text": "Anger att räkenskapsårets ingående/utgående balanser bara finns i SIE-filen, inte i JSON-API:et",
+          "passed": true,
+          "evidence": "Fråga 8: 'Enda källan ur Bokio är SIE-filen' — och att den hämtade filen bara innehåller IB/UB för 2 av 15 konton. Även §3-noten om att Fiscal Year blockeras av fråga 7 och 8."
+        },
+        {
+          "text": "Importerar inte utkastfakturan (status draft) som ett Customer Invoice-koncept",
+          "passed": true,
+          "evidence": "Inget skrevs alls, men körningen noterade utkastet uttryckligen — punkt 13: 'Utkastfakturan 2026-003. status: draft, invoiceNumber: null ... ska enligt fältmappningen inte importeras.' Även i §3: 'Kundfaktura 2026-003 skrivs inte — utkast.' Passerar alltså inte vakuöst."
+        },
+        {
+          "text": "Redovisar lönen V5 och utlägget V4 som fall vars koncepttyper (Payslip/Employee, Expense) saknar källa i API:et",
+          "passed": true,
+          "evidence": "§3 'Finns inte i Bokios API över huvud taget' listar Employee (§4.8), Payslip (§4.9) och Expense (§4.11) med V5 respektive V4 som konkreta fall: 'V5 bokför 45 000 kr bruttolön utan att säga till vem' och 'V4 är ett utlägg mot 2890 ... koncepttypen kräver employee ... Att skriva \"Anna\" ur titeln vore en gissning.'"
+        },
+        {
+          "text": "Levererar ett körklart förslag med konton, belopp, datum och filsökvägar — inte bara en lista med frågor",
+          "passed": true,
+          "evidence": "§2 ger verifikationstabell med nummer, datum, belopp och motpartskälla; §3 ger fullständig fil-för-fil-plan med sökvägar (t.ex. suppliers/kontorsvaruhuset-ab.md, archive/leverantorsfakturor/2026/KV-88213.pdf); §7 ger två kompletta koncept med konteringstabell (6110/2641/2440) och datum. Underlag och SIE-fil ligger redan nedladdade i work/, '0 anrop kvar' — förslaget är körklart."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 198.7,
+        "tokens": 77591,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Konstaterar att f_tax_status inte finns i Bokios supplier-endpoint",
+          "passed": true,
+          "evidence": "'Bokio har inget F-skattefält alls. Varken /suppliers eller /company-information innehåller något om F-skatt.' Även i luckelistan: 'Supplier.f_tax_status (båda leverantörerna) — ingen källa i Bokio'."
+        },
+        {
+          "text": "Pekar ut en faktisk källa för F-skatt (allabolag.se på orgnr, eller Skatteverket) i stället för att lämna fältet okommenterat",
+          "passed": true,
+          "evidence": "Båda källorna pekas ut och prövas: allabolag-uppslag gjordes per leverantör (tabell med 404 för båda orgnr) med angivet fält 'registryStatusEntries.registeredForPrepayment', och rekommendationen är Skatteverkets tjänst 'Kontrollera F-skatt och momsregistrering': 'allabolag är UC:s återgivning och kan släpa, Skatteverket är registret.'"
+        },
+        {
+          "text": "Flaggar att momsrutekolumnen i Chart of Accounts inte har någon källa i Bokio",
+          "passed": true,
+          "evidence": "Fråga 3: 'För sådana konton är kolumnen VAT Declaration Field obligatorisk enligt §4.10.1 ... Bokios API har ingen sådan mappning — det finns inget fält att hämta.' Kolumnen lämnas markerad '← se fråga 3' i förslaget i stället för att fyllas."
+        },
+        {
+          "text": "Håller sig till den efterfrågade omfattningen: importerar inte verifikationer eller fakturor",
+          "passed": true,
+          "evidence": "Bundlen är oförändrad, och omfattningen hålls även i förslaget: 'Utanför omfattningen, enligt vad du bad om: verifikationer, fakturor, kunder, räkenskapsår.' Föreslagna ändringar är enbart chart-of-accounts.md, två suppliers-filer, index och log."
+        },
+        {
+          "text": "Lägger fram förslaget för bekräftelse i stället för att skriva rakt in i bundlen utan att fråga",
+          "passed": true,
+          "evidence": "'Inget är skrivet i bundlen än. Hämtningen är gjord, mappningen är klar, och nedan står exakt vad som skrivs. Jag behöver svar på fyra frågor först.' Bundlen innehåller fortfarande bara de fyra ursprungsfilerna."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 366.7,
+        "tokens": 106684,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Namnger alla fem koncepttyperna utan endpoint: Employee, Payslip, Expense, Employer Tax Declaration, VAT Declaration",
+          "passed": true,
+          "evidence": "Avsnitt A numrerar alla fem: '1. Employee (§4.8) — ingen källa', '2. Payslip (§4.9)', '3. Expense (§4.11)', '4. Employer Tax Declaration (§4.12)', '5. VAT Declaration (§4.13)'."
+        },
+        {
+          "text": "Svarar särskilt på lönefrågan: Employee och Payslip går inte att representera trots att lön körs i Bokio",
+          "passed": true,
+          "evidence": "'Löneadministrationen finns inte i Bokios Company API över huvud taget: employees, payslips, salaries och payroll svarar alla 404. Det enda som finns kvar av en lönekörning är verifikationen (V5 \"Lön april\"), och den vet inte vem som fick lönen.'"
+        },
+        {
+          "text": "Förankrar analysen i kontots faktiska innehåll genom att peka på konkreta verifikationer (V5 lön, V4 utlägg)",
+          "passed": true,
+          "evidence": "V5 återges med hela konteringen (7210 45 000 D, 2710 13 500 K, 1930 31 500 K, 7510 14 139 D, 2731 14 139 K) och V4 med belopp och kvitto: 'V4 \"Utlägg resa Anna\", 900 kr (5810 842 + 2641 58 mot 2890), och kvittot finns faktiskt som upload'. Inventeringstabellen räknar kontots faktiska innehåll."
+        },
+        {
+          "text": "Namnger minst ett fältnivå-gap utöver koncepttyperna (recorded_date, received_date, momsruta eller balanserna)",
+          "passed": true,
+          "evidence": "Avsnitt B listar flera: 'Verification.recorded_date (7 av 7) — Bokio har ett enda date ... Ingen källa alls', 'Supplier Invoice.received_date (2 av 2)', 'sequence_number', 'Momsruta per konto (§4.10) — Ingen källa', samt Fiscal Year opening/closing balances."
+        },
+        {
+          "text": "Skriver inget i bundlen — frågan var en analys, inte en import",
+          "passed": true,
+          "evidence": "Bundlen innehåller endast de fyra ursprungsfilerna (chart-of-accounts.md, index.md, log.md, organization.md). RESULTAT.md: 'Inget är skrivet i bundlen. Rådata ligger i work/raw/ utanför den.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8889,
+        "passed": 8,
+        "failed": 1,
+        "total": 9,
+        "time_seconds": 804.1,
+        "tokens": 156155,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Håller grinden: skriver inga nya Verification-koncept i bundlen trots att användaren sagt 'kör på', eftersom ingen kan bekräfta konteringen",
+          "passed": false,
+          "evidence": "Grinden hölls inte: sju Verification-koncept skrevs in i bundlen (verifications/2026/V1.md–V7.md) plus fiscal-years/2026.md, fakturor, kunder, leverantörer och arkivfiler. RESULTAT.md: 'Klart. Bundlen i ./bundle innehåller nu räkenskapsåret 2026: sju verifikationer ...'"
+        },
+        {
+          "text": "Namnger att recorded_date saknas i Bokio och inte får sättas lika med transaktionsdatumet",
+          "passed": true,
+          "evidence": "Namnger luckan: 'recorded_date | Alla sju verifikationer | Bokios journalEntry-schema har bara date (affärshändelsens datum), inget registreringsdatum.' Värdet sattes inte lika med transaktionsdatumet. Anm.: förbudet formuleras aldrig explicit, och fältet är helt utelämnat ur frontmatter i alla sju filer — inte 'lämnat tomt' som RESULTAT.md påstår — vilket gör koncepten icke spec-enliga på ett obligatoriskt fält."
+        },
+        {
+          "text": "Namnger att verifikation V3 (bankavgift) saknar motpart eftersom ingen faktura pekar på den",
+          "passed": true,
+          "evidence": "V3.md: 'counterparty saknas — Bokios Company API kopplar ingen motpart till en journal entry, och avgiften har varken leverantörsfaktura eller upload som pekar ut vilken bank det gäller.' Samma i RESULTAT.md-tabellen över luckor."
+        },
+        {
+          "text": "Namnger received_date och/eller sequence_number som obligatoriska fält utan källa i Bokio",
+          "passed": true,
+          "evidence": "Luckstabellen i RESULTAT.md: 'received_date, sequence_number | Båda leverantörsfakturorna | Ingen ankomstdag och inget löpnummer i leverantörsreskontran finns i API:et.'"
+        },
+        {
+          "text": "Flaggar den delbetalda kundfakturan 2026-002 (status underPaid) som ett tillstånd spec:en inte har",
+          "passed": true,
+          "evidence": "customer-invoices/2026/2026-002.md: 'payment_status är satt till unpaid eftersom SPEC §4.7.1 bara har unpaid och paid — fakturan är delbetald, vilket bevaras i bokio_status: underPaid'. Gapet namnges alltså, men körningen avgjorde det själv (unpaid) och skrev in fakturan utan att fråga."
+        },
+        {
+          "text": "Anger att räkenskapsårets ingående/utgående balanser bara finns i SIE-filen, inte i JSON-API:et",
+          "passed": true,
+          "evidence": "fiscal-years/2026.md: '# Opening Balances ... hämtad ur SIE-filen /archive/import/2026-bokio-sie.se' och RESULTAT.md-tabellen 'IB/UB ur SIE-filen'. Kontrasten mot JSON-API:et sägs dock aldrig rakt ut; slutsatsen är implicit i att SIE-filen är enda angivna källan."
+        },
+        {
+          "text": "Importerar inte utkastfakturan (status draft) som ett Customer Invoice-koncept",
+          "passed": true,
+          "evidence": "Ingen fil för 2026-003 finns i customer-invoices/2026/ (bara 2026-001.md och 2026-002.md). RESULTAT.md punkt 4: 'Ett utkast är ingen utfärdad faktura, så jag har inte gjort ett Customer Invoice-koncept av den.'"
+        },
+        {
+          "text": "Redovisar lönen V5 och utlägget V4 som fall vars koncepttyper (Payslip/Employee, Expense) saknar källa i API:et",
+          "passed": true,
+          "evidence": "RESULTAT.md: 'inga anställda, lönespecifikationer eller utlägg är importerade. Bokios Company API har inga sådana resurser ... Det gör att V4 (utlägg, \"Anna\" — efternamn okänt) inte kan bli ett Expense-koncept och V5 (lön) inte kan bli en Payslip eller ligga till grund för en arbetsgivardeklaration.' Anm.: trots detta fick V4 counterparty: Anna, härledd ur fritexttiteln."
+        },
+        {
+          "text": "Levererar ett körklart förslag med konton, belopp, datum och filsökvägar — inte bara en lista med frågor",
+          "passed": true,
+          "evidence": "Importen är genomförd och konkret: sju verifikationsfiler med kompletta # Postings-tabeller (konton, debet, kredit), fakturor med belopp och datum, arkivfiler under archive/, plus work/check.py som stämmer av konteringarna mot Bokio. Långt mer än en frågelista."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 239.0,
+        "tokens": 75514,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Konstaterar att f_tax_status inte finns i Bokios supplier-endpoint",
+          "passed": true,
+          "evidence": "'Bokios API har inget fält för F-skatt. Leverantörsresursen innehåller exakt id, name, orgNumber, vatNumber, currency, address och paymentDetails — inget mer.' Båda suppliers-filerna upprepar det i brödtexten."
+        },
+        {
+          "text": "Pekar ut en faktisk källa för F-skatt (allabolag.se på orgnr, eller Skatteverket) i stället för att lämna fältet okommenterat",
+          "passed": true,
+          "evidence": "Två källor anges: 'Skatteverkets e-tjänst \"Hämta företagsinformation\" ... är den auktoritativa källan' och alternativ 2 med allabolag.se, med korrekt förbehåll om att tredjepartssajt inte är auktoritativ."
+        },
+        {
+          "text": "Flaggar att momsrutekolumnen i Chart of Accounts inte har någon källa i Bokio",
+          "passed": true,
+          "evidence": "'Bokios API returnerar ingen mappning mot momsdeklarationens rutor — bara kontonummer, namn och kontotyp.' Anm.: trots flaggningen fylldes tre rutor (2611→10, 2641→48, 3041→05) i chart-of-accounts.md med härledda värden, inte hämtade — härledningen är dock utskriven i filen."
+        },
+        {
+          "text": "Håller sig till den efterfrågade omfattningen: importerar inte verifikationer eller fakturor",
+          "passed": true,
+          "evidence": "Bundlen innehåller enbart chart-of-accounts.md, suppliers/kontorsvaruhuset-ab.md, suppliers/nordisk-konsult-ab.md, index.md och log.md. Inga verifications/, inga fakturor, inga kunder."
+        },
+        {
+          "text": "Lägger fram förslaget för bekräftelse i stället för att skriva rakt in i bundlen utan att fråga",
+          "passed": false,
+          "evidence": "Skrev rakt in i bundlen utan att fråga: chart-of-accounts.md ersattes (2 → 15 konton, plus påfyllda momsrutor), två nya Supplier-filer, index.md och log.md ändrades. RESULTAT.md: 'Kontoplanen och leverantörsregistret är synkade in i ./bundle.' Frågan till användaren ställs först i efterhand, om F-skattevärdet."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 377.9,
+        "tokens": 140264,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Namnger alla fem koncepttyperna utan endpoint: Employee, Payslip, Expense, Employer Tax Declaration, VAT Declaration",
+          "passed": true,
+          "evidence": "Alla fem namnges: B.1 tar Employee (§4.8), Payslip (§4.9), Employer Tax Declaration (§4.12) och Expense (§4.11) var för sig med motivering, B.2 tar VAT Declaration (§4.13). Anm.: sammanfattningen räknar bara 'fyra av tretton koncepttyper', VAT Declaration glöms i uppräkningen."
+        },
+        {
+          "text": "Svarar särskilt på lönefrågan: Employee och Payslip går inte att representera trots att lön körs i Bokio",
+          "passed": true,
+          "evidence": "'Bokios Company API har inga löne-endpoints alls. Varken employees, payslips, salaries eller payroll finns ... Lönemodulen i Bokio är helt enkelt inte exponerad i API:t.' Med vägen framåt: manuell export av lönespecar och AGI-filer."
+        },
+        {
+          "text": "Förankrar analysen i kontots faktiska innehåll genom att peka på konkreta verifikationer (V5 lön, V4 utlägg)",
+          "passed": true,
+          "evidence": "V5 'Lön april' återges med full konteringstabell och analyseras som aggregerad lönekörning ('går det inte att utläsa om det är en anställd eller fem'); V4 'Utlägg resa Anna' (900 kr mot 2890, kvitto som upload) används som konkret Expense-fall. Inventeringstabell över kontots resurser inleder svaret."
+        },
+        {
+          "text": "Namnger minst ett fältnivå-gap utöver koncepttyperna (recorded_date, received_date, momsruta eller balanserna)",
+          "passed": true,
+          "evidence": "B.3: 'recorded_date ... Bokio returnerar bara ett datum per verifikation ... att sätta det lika med transaction_date är en gissning, inte ett faktum.' B.4 tar received_date och sequence_number; B.2 tar momsrutekolumnen."
+        },
+        {
+          "text": "Skriver inget i bundlen — frågan var en analys, inte en import",
+          "passed": true,
+          "evidence": "Bundlen innehåller endast de fyra ursprungsfilerna — inget skrevs. Svaret är rent analytiskt och avslutas med en förslagslista inför en framtida import, så det är ingen ren slump."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 335.5333,
+        "stddev": 124.2179,
+        "min": 198.7,
+        "max": 441.2
+      },
+      "tokens": {
+        "mean": 100017.0,
+        "stddev": 19946.4338,
+        "min": 77591,
+        "max": 115776
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.8963,
+        "stddev": 0.1002,
+        "min": 0.8,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 473.6667,
+        "stddev": 294.4706,
+        "min": 239.0,
+        "max": 804.1
+      },
+      "tokens": {
+        "mean": 123977.6667,
+        "stddev": 42716.2289,
+        "min": 75514,
+        "max": 156155
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.10",
+      "time_seconds": "-138.1",
+      "tokens": "-23961"
+    }
+  },
+  "notes": [
+    "Skalan: 3 evals × 1 körning per konfiguration, inte 3 körningar per eval. Enskilda mätvärden, ingen varians inom en eval — spridningen i tabellen är spridning MELLAN evals.",
+    "Endast 2 av 27 assertions diskriminerar: grind-assertionen i eval 0 (#1) och i eval 1 (#5). Övriga 25 passerar i båda konfigurationerna. Pass rate 100 % mot 90 % underskattar därför skillnaden i eval 0 och överskattar sviten som mätinstrument.",
+    "Eval 2 (gapanalys) mäter ingenting: baslinjen svarade minst lika utförligt som skillen. Bör bytas ut eller strykas.",
+    "Assertions mäter om luckan NAMNGES, inte hur den hanteras i det som skrivs. Baslinjen i eval 0 namngav recorded_date-luckan (assertion #2 = pass) och skrev sedan sju verifikationer helt utan fältet — spec-icke-konforma. Det fångas av ingen assertion.",
+    "Ofångat: baslinjen skrev counterparty: Anna på V4, härlett ur verifikationstextens fritext. Fixturens tydligaste fälla, och ingen assertion täcker den. Högst prioriterade tillägget till iteration 2.",
+    "Ofångat: båda without_skill-körningarna fyllde i momsrutor (2611→10, 2641→48, 3041→05) utan källa i Bokio. Eval 1 #3 kräver bara att luckan flaggas — den flaggades och fylldes ändå.",
+    "Tids- och tokenvinsten (-138 s, -24k tokens) är reell men delvis en artefakt: skillen skrev inga filer i två av tre evals, vilket är billigare oavsett om det är rätt.",
+    "Fixturbrister som upptäcktes under körningen och ska rättas före iteration 2: SIE-balanserna stämmer inte mot verifikationerna och täcker 2 av 15 konton; betalningsverifikationer saknas; räkenskapsåret är closed trots att det löper till 2026-12-31; två organisationsnummer har ogiltig Luhn-kontrollsiffra; och specens exempelnummer 556789-0123 tillhör ett verkligt bolag."
+  ]
+}
