@@ -1,2 +1,13 @@
 .okf/
 .DS_Store
+
+# Evalkörningar: bundles, rapporter och rådumpar per iteration. Sammanfattningen
+# ligger i skills/*/evals/results/, körningarna är för stora och genererade.
+**/skills/*-workspace/
+
+# Fixturens API-svar genereras av evals/make_fixtures.py. Startbundlarna under
+# fixtures/bundle*/ är däremot handskrivna och versioneras.
+**/evals/fixtures/*.json
+**/evals/fixtures/sie/
+**/evals/fixtures/uploads/
+**/evals/fixtures/invoices/
