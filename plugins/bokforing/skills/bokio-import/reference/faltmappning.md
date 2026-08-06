@@ -342,8 +342,8 @@ ska redovisas som ett kvarstående arbete och inte gissas konto för konto.
 
 `https://allabolag.se/<orgnr>` — tio siffror utan bindestreck. Sidan
 redirectar till en slug-URL; uppgifterna ligger i `__NEXT_DATA__` som JSON.
-`scripts/allabolag_fetch.py` gör hämtningen och plockar ut de spec-relevanta
-fälten.
+`${CLAUDE_PLUGIN_ROOT}/scripts/allabolag_fetch.py` gör hämtningen och plockar
+ut de spec-relevanta fälten.
 
 **Vad det är.** allabolag drivs av UC Affärsinformation och är deras
 återgivning av Bolagsverkets och SCB:s uppgifter — inte registret självt.

@@ -165,7 +165,7 @@ hämta från [allabolag.se](https://allabolag.se/) — `https://allabolag.se/`
 plus organisationsnumret med tio siffror utan bindestreck:
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/bokio-import/scripts/allabolag_fetch.py" 5567037485
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/allabolag_fetch.py" 5567037485
 ```
 
 Det stänger `f_tax_status`, `workplace_address` och frågan om bolaget alls

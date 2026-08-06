@@ -6,6 +6,14 @@ OKF-profil för svensk bokföring.
 
 ## Skills
 
+- **initiera-bolag** — sätter upp en tom bundle för ett bolag utifrån enbart
+  organisationsnumret: `organization.md`, `chart-of-accounts.md` med en
+  fullständig BAS-kontoplan om 1242 konton (99 med momskoppling), och ett
+  första räkenskapsår. Företagsuppgifterna hämtas från allabolag.se; de sju
+  fält inget register svarar på — momsnummer, redovisningsmetod, säte,
+  CFAR-nummer, teknisk kontaktperson — lämnas tomma och redovisas i stället
+  för att fyllas med det som brukar stämma. Kontoplanen ligger i
+  [`skills/initiera-bolag/reference/kontoplan.tsv`](skills/initiera-bolag/reference/kontoplan.tsv).
 - **bokfor-underlag** — klassificerar underlaget mot spec:ens koncepttyper,
   härleder konteringen ur bundlens egen tidigare bokföring, och lägger fram
   ett förslag för bekräftelse innan något skrivs. Frågar hellre än gissar:
