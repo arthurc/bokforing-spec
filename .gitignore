@@ -1,5 +1,6 @@
 .okf/
 .DS_Store
+__pycache__/
 
 # Evalkörningar: bundles, rapporter och rådumpar per iteration. Sammanfattningen
 # ligger i skills/*/evals/results/, körningarna är för stora och genererade.
