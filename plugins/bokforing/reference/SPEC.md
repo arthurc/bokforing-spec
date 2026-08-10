@@ -25,8 +25,8 @@ hatch that OKF explicitly allows (OKF §4.1, "Extensions") and uses it to:
 - name a fixed set of concept types for the accounting domain —
   `Organization`, `Verification`, `Fiscal Year`, `Supplier`, `Supplier
   Invoice`, `Customer`, `Customer Invoice`, `Employee`, `Payslip`,
-  `Chart of Accounts`, `Expense`, `Employer Tax Declaration`, and
-  `VAT Declaration` (§4.1–§4.13);
+  `Chart of Accounts`, `Expense`, `Employer Tax Declaration`,
+  `VAT Declaration`, and `Accrual` (§4.1–§4.14);
 - promote, per type, the legally mandated fields from optional to
   **required** (§4.x.1); and
 - require, per type, the body sections that carry the per-row data
@@ -46,9 +46,12 @@ belongs to, and `Fiscal Year` (§4.3) the räkenskapsår it falls in.
 master data of the motpart it names. `Supplier Invoice` (§4.5),
 `Customer Invoice` (§4.7), `Payslip` (§4.9), and `Expense` (§4.11) hold
 the underlying document (bokföringsunderlag) it rests on. `Chart of
-Accounts` (§4.10) names the accounts it posts to. And `Employer Tax
-Declaration` (§4.12) and `VAT Declaration` (§4.13) are the deklarationer
-derived by aggregating verifikationer over a redovisningsperiod.
+Accounts` (§4.10) names the accounts it posts to. `Accrual` (§4.14)
+holds the periodisering that assigns its belopp to the period the
+intäkt or kostnad belongs to rather than the one it was paid in. And
+`Employer Tax Declaration` (§4.12) and `VAT Declaration` (§4.13) are the
+deklarationer derived by aggregating verifikationer over a
+redovisningsperiod.
 
 The primary legal source for these requirements is the Bokföringslag
 (BFL); the moms-, fakturainnehålls-, löne-, and deklarationsrelaterade
@@ -224,6 +227,23 @@ In addition to the terms defined in OKF §2, this profile uses:
   company's arbetsställen and their CFAR-nummer, so each `Employee`'s
   (§4.8) FK060 in an `Employer Tax Declaration`'s (§4.12) individuppgift
   resolves to an address.
+- **Periodisering (Accrual)** — assigning an intäkt or kostnad to the
+  period it belongs to rather than the period it was paid in.
+  Periodiseringsprincipen requires that "intäkter och kostnader som är
+  hänförliga till räkenskapsåret ska tas med oavsett tidpunkten för
+  betalningen" (ÅRL 2 kap. 4 § första stycket 4 p.), which is what makes
+  the four periodiseringsposter necessary: a **förutbetald kostnad**
+  (paid this period, belongs to a later one — 1700-serien), an **upplupen
+  kostnad** (belongs to this period, paid later — 2900-serien), a
+  **förutbetald intäkt** (received this period, earned in a later one —
+  2900-serien), and an **upplupen intäkt** (earned this period, received
+  later — 1700-serien). This profile's `Accrual` concept type (§4.14)
+  represents one such post: which belopp is being carried, over which
+  period, on which balanskonto, and which `Verification`s (§4.2) book it
+  up and release it. Not every belopp needs one — K2 lets a mindre företag
+  skip periodisering of amounts individually under 5 000 kr
+  (femtusenkronorsregeln) and of årligen återkommande utgifter — and
+  where no periodisering is made, no `Accrual` concept exists.
 - **Arkiv (Archive)** — the `archive/` directory at the bundle root,
   where räkenskapsinformation is kept in the form it was received or
   transferred to: the kvitton, fakturor, kontoutdrag,
@@ -2388,6 +2408,209 @@ momsdeklarationen.
 
 ---
 
+### 4.14 `Accrual`
+
+An `Accrual` concept represents exactly one periodiseringspost: a belopp
+carried on a balanskonto so that the intäkt or kostnad lands in the
+period it is hänförlig to rather than the period it was paid in, as
+periodiseringsprincipen requires (ÅRL 2 kap. 4 § första stycket 4 p.).
+It sits between the underlag and the bokföring the same way `Expense`
+(§4.11) does: the underlying `Supplier Invoice` (§4.5), `Customer
+Invoice` (§4.7), or `Expense` is *what was paid or invoiced*, the
+`Accrual` is *which period the belopp belongs to and how it is released*,
+and the `Verification`s (§4.2) are *how the uppbokning and each period's
+andel were booked*.
+
+A periodisering is booked in two steps, and this profile's fields exist
+to keep both traceable. First an uppbokning moves the belopp onto a
+balanskonto — 1700-serien (förutbetalda kostnader och upplupna intäkter)
+or 2900-serien (upplupna kostnader och förutbetalda intäkter) — against
+the kostnads- or intäktskonto. Then, in each period the belopp is
+hänförlig to, an upplösning moves that period's andel back off the
+balanskonto. `accrual_kind` names which of the four forms the post takes,
+`balance_account` the konto it rests on between the two steps, and the
+`# Schedule` body section (§4.14.2) the per-period andelar and the
+`Verification` that recognises each — the row-level data frontmatter
+cannot express.
+
+Not every belopp is periodiserat. K2 lets a mindre företag skip
+periodisering of intäkter and kostnader individually under 5 000 kr
+(femtusenkronorsregeln, BFNAR 2016:10 punkt 2.4) and of årligen
+återkommande utgifter (punkt 7.9), subject to väsentlighetsprincipen
+applied to the poster taken together. Where a company uses those
+förenklingsregler and makes no periodisering, no `Accrual` concept
+exists — the belopp stays where the betalning put it. Where a company
+does periodisera, the `# Basis` body section (§4.14.2) is where the
+bedömning is recorded.
+
+Concept ID convention: place accruals under an `accruals/`
+subdirectory, one file per periodiseringspost, e.g.
+`accruals/2026/foretagsforsakring-2026-07.md`. Like an `Expense`
+(§4.11), a periodiseringspost carries no löpnummer of its own, so
+producers SHOULD name the file after what is periodiserat and the period
+it starts in.
+
+#### 4.14.1 Frontmatter
+
+```yaml
+---
+type: Accrual                      # REQUIRED (OKF §4.1)
+accrual_kind: prepaid_expense | accrued_expense | deferred_income | accrued_income  # REQUIRED
+description: <string>              # REQUIRED
+amount: <decimal> <ISO 4217 code>  # REQUIRED
+period_start: <ISO 8601 date>      # REQUIRED
+period_end: <ISO 8601 date>        # REQUIRED
+balance_account: <string>          # REQUIRED
+fiscal_year: <Concept ID>          # REQUIRED
+status: open | released            # REQUIRED
+source_verification: <Concept ID>  # REQUIRED
+income_expense_account: <string>   # Recommended
+source_document: <Concept ID>      # Recommended
+release_method: straight_line | manual  # Recommended
+title: <Optional display name>     # Recommended (OKF §4.1)
+tags: [<tag>, …]                   # Optional (OKF §4.1)
+timestamp: <ISO 8601 datetime>     # Recommended (OKF §4.1)
+---
+```
+
+The generic OKF fields (`type`, `title`, `tags`, `timestamp`) keep their
+OKF §4.1 meaning, with one change: `description` is **required** for
+`Accrual`, not merely recommended, mirroring `Verification.description`
+(§4.2.1).
+
+**Required**:
+
+- `accrual_kind` — which of the four periodiseringsposter this is:
+  `prepaid_expense` (förutbetald kostnad — betald i denna period, avser
+  en senare), `accrued_expense` (upplupen kostnad — avser denna period,
+  betalas senare), `deferred_income` (förutbetald intäkt — erhållen i
+  denna period, intjänas senare), or `accrued_income` (upplupen intäkt —
+  intjänad i denna period, erhålls senare). The value decides which
+  kontoserie `balance_account` belongs to: 1700 for
+  `prepaid_expense`/`accrued_income`, 2900 for
+  `accrued_expense`/`deferred_income`.
+- `description` — what is being periodiserat — which kostnad or intäkt
+  the belopp concerns, e.g. en företagsförsäkring, en hyra, en
+  supportintäkt. Stricter than OKF's generic "one-sentence summary"
+  (OKF §4.1), mirroring `Verification.description` (§4.2.1).
+- `amount` — the total belopp carried onto `balance_account` by the
+  uppbokning, i.e. the sum of the andelar in `# Schedule` (§4.14.2).
+  Excludes moms, which is not periodiserad: moms follows the
+  redovisningsmetod (§3), not periodiseringsprincipen.
+- `period_start` / `period_end` — the first and last day of the period
+  the belopp is hänförlig to. These bound the andelar in `# Schedule`;
+  they are the period the intäkt or kostnad *belongs to*, not the period
+  it was paid in.
+- `balance_account` — the kontonummer the belopp rests on between
+  uppbokning and upplösning, e.g. `1710` or `2990`. SHOULD match an
+  account listed in the bundle's `Chart of Accounts` (§4.10).
+- `fiscal_year` — the Concept ID of the `Fiscal Year` (§4.3) whose
+  bokföring the uppbokning belongs to: the räkenskapsår the periodisering
+  moves the belopp *out of* or *into*. A post released over a later
+  räkenskapsår still names the year it was booked up in.
+- `status` — `open` while one or more periods in `# Schedule` remain
+  unreleased, `released` once every period's andel has been booked off
+  `balance_account`. Exists so that tooling can find posts left standing
+  on a balanskonto past `period_end`.
+- `source_verification` — the Concept ID of the `Verification` (§4.2)
+  that books the uppbokning: the post onto `balance_account`. Required
+  rather than recommended, since a periodisering that was never bokförd
+  is not a periodisering.
+
+**Recommended**:
+
+- `income_expense_account` — the kontonummer the uppbokning posts
+  against and each upplösning posts back to: the kostnads- or
+  intäktskonto, e.g. `6310`. Recommended rather than required because a
+  single periodisering MAY split across several such konton, in which
+  case the `# Schedule` and the referenced `Verification`s carry the
+  breakdown.
+- `source_document` — the Concept ID of the `Supplier Invoice` (§4.5),
+  `Customer Invoice` (§4.7), or `Expense` (§4.11) the periodiserade
+  belopp comes from. One field rather than one per type: the Concept ID
+  already resolves to a concept whose `type` says which it is.
+- `release_method` — `straight_line` when the belopp is split evenly
+  across the periods in `# Schedule`, `manual` when the andelar were
+  determined some other way. Recorded so a reader can check the schedule
+  against the stated method.
+
+#### 4.14.2 Conventional body sections
+
+In addition to the OKF §4.2 conventional headings, `Accrual` concepts
+SHOULD use:
+
+| Heading      | Purpose                                                                                                          |
+| ------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `# Schedule` | One row per period the belopp is hänförlig to: the period, its andel, and the `Verification` that releases it.    |
+| `# Basis`    | What is periodiserat and why, including the väsentlighetsbedömning when a förenklingsregel was considered.        |
+| `# Citations`| As OKF §8 — the legal or documentary basis, if not obvious from context.                                          |
+
+The `# Schedule` table SHOULD use the columns `Period`, `Amount`, and
+`Verification`. A row whose andel has not yet been booked leaves
+`Verification` empty; `status` is `released` only once no row does.
+
+#### 4.14.3 Example
+
+```markdown
+---
+type: Accrual
+accrual_kind: prepaid_expense
+description: Företagsförsäkring för perioden 2027-01-01–2027-06-30, betald i förskott 2026-07-01
+amount: 12000.00 SEK
+period_start: 2027-01-01
+period_end: 2027-06-30
+balance_account: "1730"
+income_expense_account: "6310"
+fiscal_year: "fiscal-years/2026"
+status: released
+source_verification: "verifications/2026/000512"
+source_document: "supplier-invoices/2026/FS-4471"
+release_method: straight_line
+title: Förutbetald företagsförsäkring 2027-01–2027-06
+tags: [periodisering, forsakring]
+timestamp: 2026-12-31T16:00:00Z
+---
+
+Company AB betalade 2026-07-01 en företagsförsäkring på 24 000 kr
+avseende 2026-07-01–2027-06-30 — se
+[supplier-invoices/2026/FS-4471](/supplier-invoices/2026/FS-4471.md).
+Halva premien, 12 000 kr, avser räkenskapsåret 2027 och bokades vid
+bokslutet 2026-12-31 om till förutbetald kostnad på konto 1730 genom
+[verifications/2026/000512](/verifications/2026/000512.md). Beloppet
+löstes upp linjärt med 2 000 kr per månad under första halvåret 2027.
+
+# Schedule
+
+| Period     | Amount   | Verification              |
+| ---------- | -------- | ------------------------- |
+| 2027-01    | 2000.00  | verifications/2027/000009 |
+| 2027-02    | 2000.00  | verifications/2027/000041 |
+| 2027-03    | 2000.00  | verifications/2027/000078 |
+| 2027-04    | 2000.00  | verifications/2027/000112 |
+| 2027-05    | 2000.00  | verifications/2027/000150 |
+| 2027-06    | 2000.00  | verifications/2027/000186 |
+| **Summa**  | 12000.00 |                           |
+
+# Basis
+
+Premien avser tolv månader över två räkenskapsår, varav sex månader
+faller på 2027. Beloppet överstiger 5 000 kr, så femtusenkronorsregeln
+(K2 punkt 2.4) är inte tillämplig, och försäkringen är inte en sådan
+årligen återkommande utgift med jämn storlek som punkt 7.9 undantar —
+premien höjdes med 18 % jämfört med föregående år. Momsen är inte
+periodiserad; den redovisades i sin helhet i den redovisningsperiod
+fakturan hör till.
+
+# Citations
+
+[1] Årsredovisningslagen (ÅRL) 2 kap. 4 § första stycket 4 p. —
+    periodiseringsprincipen
+[2] BFNAR 2016:10 (K2) punkterna 2.4 och 7.9 — femtusenkronorsregeln
+    och årligen återkommande utgifter
+```
+
+---
+
 ## 5. Archive
 
 The concept types in §4 describe affärshändelser and the parties to
@@ -2534,6 +2757,13 @@ conformance (OKF §9) **and**, additionally:
   per ifyllt fält, fält 49 among them in every period; and includes an
   `# Avstämning` body section recording the omföring to
   momsredovisningskontot (§4.13.1).
+- every concept with `type: Accrual` has all fields listed as
+  "Required" in §4.14.1; has a `balance_account` in the kontoserie
+  `accrual_kind` implies — 1700 for `prepaid_expense`/`accrued_income`,
+  2900 for `accrued_expense`/`deferred_income` (§4.14.1); and includes a
+  `# Schedule` body section (§4.14.2) whose andelar sum to `amount` and
+  fall within `period_start`–`period_end`, with a `Verification` on every
+  row whenever `status` is `released`.
 - no concept document (`.md`) is placed under `archive/`, and every
   bundle-relative `resource` or `supporting_documents` path pointing
   into `archive/` resolves to a file present in the bundle (§5).
@@ -2541,9 +2771,10 @@ conformance (OKF §9) **and**, additionally:
 As with OKF itself (OKF §9), consumers MUST NOT reject a
 `Verification`, `Fiscal Year`, `Supplier`, `Supplier Invoice`,
 `Customer`, `Customer Invoice`, `Employee`, `Payslip`, `Chart of
-Accounts`, `Expense`, `Employer Tax Declaration`, `VAT Declaration`, or
-`Organization` concept over missing "Recommended" fields — only over
-missing "Required" (or applicable "Required when applicable") fields.
+Accounts`, `Expense`, `Employer Tax Declaration`, `VAT Declaration`,
+`Accrual`, or `Organization` concept over missing "Recommended" fields —
+only over missing "Required" (or applicable "Required when applicable")
+fields.
 
 ---
 
@@ -2581,7 +2812,11 @@ blankett and vägledning; and for `Organization` (§4.1), the same
 Skatteförfarandelag arbetsgivardeklaration provisions (SFL 26 kap.) for
 the organisationsnummer (FK201) and arbetsställenummer (FK060), together
 with Statistiska centralbyråns Företagsregister for the arbetsställenummer
-(CFAR-nummer) itself; and for the `archive/` directory (§5), the
+(CFAR-nummer) itself; for `Accrual` (§4.14), the Årsredovisningslag's
+periodiseringsprincip together with Bokföringsnämndens allmänna råd om
+årsredovisning i mindre företag (K2) for the förenklingsregler that
+decide when a periodiseringspost is made at all; and for the `archive/`
+directory (§5), the
 Bokföringslag's arkiveringsbestämmelser (BFL 7 kap.) together with the
 same 5 kap. 6–7 §§ provisions as §4.2 for the duty to state where an
 underlag is available:
@@ -2704,3 +2939,26 @@ underlag is available:
      räkenskapsår ended, provided the information has been transferred
      "på ett betryggande sätt" to the form the company preserves it in.
      This is what a scanned pappersfaktura placed in the arkiv (§5) is.
+[25] ÅRL 2 kap. 4 § första stycket 4 p. — periodiseringsprincipen:
+     "intäkter och kostnader som är hänförliga till räkenskapsåret ska
+     tas med oavsett tidpunkten för betalningen". This is the basis for
+     the `Accrual` concept type (§4.14) as a whole, and for why
+     `period_start`/`period_end` describe the period a belopp is
+     hänförlig to rather than the period it was paid in.
+[26] BFNAR 2016:10 (K2) punkterna 2.4 och 7.9 — the förenklingsregler a
+     mindre företag may apply instead of periodisering: punkt 2.4, that
+     intäkter and kostnader individually under 5 000 kr need not be
+     periodiserade (femtusenkronorsregeln), and punkt 7.9, that årligen
+     återkommande utgifter need not be, both subject to
+     väsentlighetsprincipen applied to the poster taken together. This is
+     why an affärshändelse may legitimately have no `Accrual` concept.
+     https://www.bfn.se/wp-content/uploads/vl16-10-k2ar-kons2025.pdf
+[27] Srf konsulterna, uttalandena Srf U 1 (tillämpning av
+     femtusenkronorsregeln) and Srf U 11 (årligen återkommande utgifter
+     — frivillig återgång till korrekt periodisering) — the practical
+     reading of [26]'s two punkter, including that the regler are
+     frivilliga and that a företag may return to full periodisering. As
+     with [6], [14], [17], [19], and [21], this is a branschuttalande
+     rather than a paragraf in law, so the citation is at the
+     uttalandenivå.
+     https://srfredovisning.se/srfu-srfs-uttalanden-i-redovisningsfragor/srfu-1-tillampning-av-femtusenkronorsregeln-i-k2/
