@@ -53,7 +53,7 @@ brukar gissa.
 ## Installation
 
 ```bash
-/plugin marketplace add /Users/arthur/src/accounting-spec
+/plugin marketplace add arthurc/bokforing-spec
 ```
 
 Sedan `/plugin install bokforing@accounting-spec`.
