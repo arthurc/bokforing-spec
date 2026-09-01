@@ -19,6 +19,14 @@ OKF-profil för svensk bokföring.
   ett förslag för bekräftelse innan något skrivs. Frågar hellre än gissar:
   kund- eller leverantörsfaktura, utlägg eller företagsbetalning, konto,
   momssats och räkenskapsår är alla saker den vägrar anta.
+- **huvudbok** — sammanställer bundlens verifikationer per konto för en vald
+  period och publicerar en artefakt: varje konto som har belopp med namn,
+  ingående balans och utgående balans, expanderbart till verifikationerna
+  bakom med datum, beskrivning, debet och kredit. Härledd rapport — den
+  skriver ingenting i bundlen, och redovisar en obalans i stället för att
+  jämna ut den. Beräkningen och renderingen ligger i
+  [`skills/huvudbok/scripts/huvudbok.py`](skills/huvudbok/scripts/huvudbok.py),
+  med `--selftest` som kontroll.
 - **bokio-import** — hämtar bokföring, kontoplan, motparter och
   fakturor ur Bokios Company API och skriver dem som koncept. Redovisar
   luckorna i stället för att fylla dem: fem koncepttyper (`Employee`,
