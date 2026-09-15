@@ -80,6 +80,22 @@ Statistiska centralbyråns Företagsregister. See
   stricter per-type requirements in §4 below, and SHOULD reject a
   `Verification` concept missing a required field the same way they
   would reject an OKF concept missing `type` (OKF §9, rule 2).
+- Every path that points inside the bundle is resolved from the
+  bundle root, never from the referencing document and never from the
+  producer's filesystem. This profile restricts OKF §5 to its
+  bundle-relative form (OKF §5.1): markdown links between concepts and
+  `resource`/`supporting_documents` paths into the arkiv (§5) MUST
+  begin with `/` (`/verifications/2026/000123.md`,
+  `/archive/kvitton/2026/….pdf`), and frontmatter fields typed
+  `<Concept ID>` MUST hold the Concept ID as OKF §3 defines it — the
+  path from the bundle root without `.md` and without a leading `/`
+  (`verifications/2026/000123`). Document-relative links (`./`, `../`,
+  OKF §5.2) and `file:///` URIs MUST NOT be used for targets inside the
+  bundle. The reason is that a bundle is read from many positions at
+  once — a consumer following a link from `expenses/2026/x.md`, an
+  index at the root, a viewer with the bundle mounted somewhere else —
+  and only a root-anchored path resolves to the same file from all of
+  them.
 
 ---
 
@@ -2764,6 +2780,10 @@ conformance (OKF §9) **and**, additionally:
   `# Schedule` body section (§4.14.2) whose andelar sum to `amount` and
   fall within `period_start`–`period_end`, with a `Verification` on every
   row whenever `status` is `released`.
+- every markdown link, `resource`, and `supporting_documents` path
+  whose target lies inside the bundle begins with `/` and is resolved
+  from the bundle root, and every `<Concept ID>` field holds a
+  root-relative Concept ID without `.md` or a leading `/` (§2);
 - no concept document (`.md`) is placed under `archive/`, and every
   bundle-relative `resource` or `supporting_documents` path pointing
   into `archive/` resolves to a file present in the bundle (§5).
