@@ -80,22 +80,28 @@ Statistiska centralbyråns Företagsregister. See
   stricter per-type requirements in §4 below, and SHOULD reject a
   `Verification` concept missing a required field the same way they
   would reject an OKF concept missing `type` (OKF §9, rule 2).
-- Every path that points inside the bundle is resolved from the
-  bundle root, never from the referencing document and never from the
-  producer's filesystem. This profile restricts OKF §5 to its
-  bundle-relative form (OKF §5.1): markdown links between concepts and
-  `resource`/`supporting_documents` paths into the arkiv (§5) MUST
-  begin with `/` (`/verifications/2026/000123.md`,
-  `/archive/kvitton/2026/….pdf`), and frontmatter fields typed
-  `<Concept ID>` MUST hold the Concept ID as OKF §3 defines it — the
-  path from the bundle root without `.md` and without a leading `/`
-  (`verifications/2026/000123`). Document-relative links (`./`, `../`,
-  OKF §5.2) and `file:///` URIs MUST NOT be used for targets inside the
-  bundle. The reason is that a bundle is read from many positions at
-  once — a consumer following a link from `expenses/2026/x.md`, an
-  index at the root, a viewer with the bundle mounted somewhere else —
-  and only a root-anchored path resolves to the same file from all of
-  them.
+- Every path that points from one file in the bundle to another is
+  relative to the referencing document, never to the bundle root and
+  never to the producer's filesystem. This profile restricts OKF §5 to
+  its document-relative form (OKF §5.2): markdown links between
+  concepts and `resource`/`supporting_documents` paths into the arkiv
+  (§5) MUST be written as standard relative paths from the directory
+  of the file that contains them (`../../suppliers/kontorsvaruhuset-ab.md`
+  from `supplier-invoices/2026/KV-88213.md`,
+  `../../archive/kvitton/2026/….pdf` from `expenses/2026/x.md`,
+  `./2024-2025.md` from `fiscal-years/2025-2026.md`). Bundle-absolute
+  links beginning with `/` (OKF §5.1) and `file:///` URIs MUST NOT be
+  used for targets inside the bundle. Frontmatter fields typed
+  `<Concept ID>` are identifiers, not links: they MUST hold the
+  Concept ID as OKF §3 defines it — the path from the bundle root
+  without `.md` and without a leading `/` (`verifications/2026/000123`).
+  The reason is that a bundle is a plain directory of files that
+  consumers open with ordinary tools — an editor, a markdown previewer,
+  a git host, a file manager — none of which know where the bundle
+  root is. Only a document-relative path resolves to the same file in
+  all of them, and it keeps resolving when the bundle is cloned,
+  zipped, moved, or checked in as a subdirectory of a larger
+  repository.
 
 ---
 
@@ -448,9 +454,9 @@ timestamp: 2026-07-01T09:00:00Z
 masterdata: identitet, skatteregistreringar, redovisningsmetod för moms,
 teknisk kontaktperson för deklarationer, och arbetsställen.
 Organisationsnumret här är samma FK201 som varje
-[arbetsgivardeklaration](/employer-tax-declarations/) (§4.12) rapporterar,
+[arbetsgivardeklaration](./employer-tax-declarations/) (§4.12) rapporterar,
 och redovisningsmetoden (fakturametoden) är den varje
-[momsdeklaration](/vat-declarations/) (§4.13) tillämpar.
+[momsdeklaration](./vat-declarations/) (§4.13) tillämpar.
 
 # Arbetsställen
 
@@ -544,14 +550,14 @@ recommended, and its content is constrained as specified below.
   when such documents exist; a verification with no underlying
   agreement or referenced document (e.g. some bokföringsorder
   corrections) MAY omit it. When the handling is archived in the
-  bundle's arkiv, the entry SHOULD state its bundle-relative path
+  bundle's arkiv, the entry SHOULD state its document-relative path
   (§5) — that path is what answers "var de finns tillgängliga".
 
 **Recommended**:
 
 - `resource` — a URI to the scanned/original source document (kvitto,
   faktura, kontoutdrag, etc.), when one exists. SHOULD be a
-  bundle-relative path under `archive/` (§5) when the document is
+  document-relative path under `archive/` (§5) when the document is
   archived with the bundle; an external URI is permitted but leaves the
   underlag outside it. Omit for a bokföringsorder that has no external
   document.
@@ -590,15 +596,15 @@ description: Inköp av kontorsmaterial från Kontorsvaruhuset AB
 amount: 1250.00 SEK
 counterparty: Kontorsvaruhuset AB
 supporting_documents:
-  - "Leverantörsfaktura #KV-88213, /archive/leverantorsfakturor/2026/KV-88213.pdf"
+  - "Leverantörsfaktura #KV-88213, ../../archive/leverantorsfakturor/2026/KV-88213.pdf"
 title: Inköp kontorsmaterial — faktura KV-88213
-resource: "/archive/leverantorsfakturor/2026/KV-88213.pdf"
+resource: "../../archive/leverantorsfakturor/2026/KV-88213.pdf"
 tags: [external, leverantorsfaktura]
 timestamp: 2026-07-01T09:15:00Z
 retention_until: 2033-07-01
 ---
 
-Faktura från [Kontorsvaruhuset AB](/parties/kontorsvaruhuset-ab.md)
+Faktura från [Kontorsvaruhuset AB](../../parties/kontorsvaruhuset-ab.md)
 avseende kontorsmaterial till kontoret, mottagen 2026-06-30.
 
 # Postings
@@ -612,7 +618,7 @@ avseende kontorsmaterial till kontoret, mottagen 2026-06-30.
 # Supporting Documents
 
 - Leverantörsfaktura #KV-88213, arkiverad under
-  `/archive/leverantorsfakturor/2026/KV-88213.pdf`.
+  `../../archive/leverantorsfakturor/2026/KV-88213.pdf`.
 
 # Citations
 
@@ -751,12 +757,12 @@ Räkenskapsår för Company AB, brutet räkenskapsår
 # Verifications
 
 Samtliga verifikationer för räkenskapsåret finns under
-[verifications/2025-2026](/verifications/2025-2026/).
+[verifications/2025-2026](../verifications/2025-2026/).
 
 # Opening Balances
 
 Ingående balans 2025-09-01, hämtad från [föregående räkenskapsårs
-utgående balans](/fiscal-years/2024-2025.md).
+utgående balans](./2024-2025.md).
 
 | Account                          | Balance         |
 | --------------------------------- | ---------------: |
@@ -893,11 +899,11 @@ av kontorsmaterial.
 
 # Verifications
 
-- [verifications/2026/000123](/verifications/2026/000123.md)
+- [verifications/2026/000123](../verifications/2026/000123.md)
 
 # Supplier Invoices
 
-- [supplier-invoices/2026/KV-88213](/supplier-invoices/2026/KV-88213.md)
+- [supplier-invoices/2026/KV-88213](../supplier-invoices/2026/KV-88213.md)
 
 # Citations
 
@@ -1030,13 +1036,13 @@ payment_status: unpaid
 verification: "verifications/2026/000123"
 payment_terms: 30 dagar netto
 title: Leverantörsfaktura KV-88213 — Kontorsvaruhuset AB
-resource: "/archive/leverantorsfakturor/2026/KV-88213.pdf"
+resource: "../../archive/leverantorsfakturor/2026/KV-88213.pdf"
 timestamp: 2026-06-30T08:00:00Z
 ---
 
-Faktura från [Kontorsvaruhuset AB](/suppliers/kontorsvaruhuset-ab.md)
+Faktura från [Kontorsvaruhuset AB](../../suppliers/kontorsvaruhuset-ab.md)
 avseende kontorsmaterial till kontoret, mottagen 2026-06-30. Bokförd
-som [verifications/2026/000123](/verifications/2026/000123.md).
+som [verifications/2026/000123](../../verifications/2026/000123.md).
 
 # Line Items
 
@@ -1172,11 +1178,11 @@ konsulttjänster.
 
 # Verifications
 
-- [verifications/2026/000145](/verifications/2026/000145.md)
+- [verifications/2026/000145](../verifications/2026/000145.md)
 
 # Customer Invoices
 
-- [customer-invoices/2026/2026-0456](/customer-invoices/2026/2026-0456.md)
+- [customer-invoices/2026/2026-0456](../customer-invoices/2026/2026-0456.md)
 
 # Citations
 
@@ -1320,9 +1326,9 @@ title: Kundfaktura 2026-0456 — Företag AB
 timestamp: 2026-06-15T09:00:00Z
 ---
 
-Faktura till [Företag AB](/customers/foretag-ab.md) avseende
+Faktura till [Företag AB](../../customers/foretag-ab.md) avseende
 konsulttjänster utförda i maj 2026. Bokförd som
-[verifications/2026/000145](/verifications/2026/000145.md).
+[verifications/2026/000145](../../verifications/2026/000145.md).
 
 # Line Items
 
@@ -1468,7 +1474,7 @@ Anna Svensson, anställd som redovisningsekonom sedan 2022-03-01.
 
 # Verifications
 
-- [verifications/2026/000201](/verifications/2026/000201.md)
+- [verifications/2026/000201](../verifications/2026/000201.md)
 
 # Citations
 
@@ -1600,9 +1606,9 @@ title: Lönespecifikation Anna Svensson — juni 2026
 timestamp: 2026-06-25T08:00:00Z
 ---
 
-Lönespecifikation för [Anna Svensson](/employees/anna-svensson.md)
+Lönespecifikation för [Anna Svensson](../../employees/anna-svensson.md)
 avseende juni 2026. Bokförd som
-[verifications/2026/000201](/verifications/2026/000201.md).
+[verifications/2026/000201](../../verifications/2026/000201.md).
 
 # Line Items
 
@@ -1797,7 +1803,7 @@ employee: <Concept ID>             # REQUIRED
 expense_date: <ISO 8601 date>      # REQUIRED
 description: <string>              # REQUIRED
 amount: <decimal> <ISO 4217 code>  # REQUIRED
-resource: </archive/… path to kvitto>  # REQUIRED
+resource: <../../archive/… document-relative path to kvitto>  # REQUIRED
 reimbursement_status: unpaid | paid  # REQUIRED
 vat_amount: <decimal> <ISO 4217 code>  # REQUIRED when applicable
 reimbursement_date: <ISO 8601 date>    # REQUIRED when applicable
@@ -1834,7 +1840,7 @@ not merely recommended, for the reason given above.
   guide notes that "den anställde måste spara alla kvitton för att det
   ska betraktas som ett utlägg och vara avdragsgillt för företaget" —
   without a referenced kvitto, an `Expense` concept does not evidence an
-  utlägg at all. For the same reason the value MUST be a bundle-relative
+  utlägg at all. For the same reason the value MUST be a document-relative
   path under `archive/` (§5) resolving to a file that is present: an
   external URI records that a kvitto once existed, not that it has been
   preserved.
@@ -1887,7 +1893,7 @@ expense_date: 2026-06-03
 description: Kontorsmaterial inköpt med privata medel till kontoret
 amount: 450.00 SEK
 vat_amount: 90.00 SEK
-resource: "/archive/kvitton/2026/anna-svensson-kontorsmaterial-2026-06-03.pdf"
+resource: "../../archive/kvitton/2026/anna-svensson-kontorsmaterial-2026-06-03.pdf"
 reimbursement_status: paid
 reimbursement_date: 2026-06-25
 verification: "verifications/2026/000178"
@@ -1896,21 +1902,21 @@ title: Utlägg, kontorsmaterial — Anna Svensson
 timestamp: 2026-06-03T14:00:00Z
 ---
 
-[Anna Svensson](/employees/anna-svensson.md) lade ut 450.00 kr privat
+[Anna Svensson](../../employees/anna-svensson.md) lade ut 450.00 kr privat
 för kontorsmaterial till kontoret 2026-06-03. Kostnaden och momsen
 bokfördes samma dag som en skuld till Anna. Skulden reglerades
 2026-06-25 som en rad på hennes lönespecifikation för juni 2026 — se
-[payslips/2026/anna-svensson-2026-06](/payslips/2026/anna-svensson-2026-06.md).
+[payslips/2026/anna-svensson-2026-06](../../payslips/2026/anna-svensson-2026-06.md).
 
 # Receipt
 
 Kvitto från Kontorsvaruhuset AB, utställt på Anna Svensson, arkiverat
-under `/archive/kvitton/2026/anna-svensson-kontorsmaterial-2026-06-03.pdf`.
+under `../../archive/kvitton/2026/anna-svensson-kontorsmaterial-2026-06-03.pdf`.
 
 # Reimbursement
 
 Skulden bokades upp 2026-06-03 mot
-[verifications/2026/000178](/verifications/2026/000178.md). Reglerad
+[verifications/2026/000178](../../verifications/2026/000178.md). Reglerad
 2026-06-25 som raden "Utlägg, kontorsmaterial" (450.00 kr) på
 lönespecifikationen för juni 2026, mot skuldkontot — inte kostnadsförd
 en andra gång som lön.
@@ -2102,21 +2108,21 @@ En huvuduppgift lämnas per redovisningsperiod, för hela företaget.
 # Individuppgift
 
 En individuppgift per betalningsmottagare, härledd ur månadens
-[`Payslip`](/payslips/2026/anna-svensson-2026-06.md)-koncept.
+[`Payslip`](../payslips/2026/anna-svensson-2026-06.md)-koncept.
 
 | Betalningsmottagare                          | FK215         | FK011         | FK001        |
 | --------------------------------------------- | ------------- | -------------: | -----------: |
-| [Anna Svensson](/employees/anna-svensson.md)  | 19850612-1234 | 32 000.00 SEK  | 8 100.00 SEK |
+| [Anna Svensson](../employees/anna-svensson.md)  | 19850612-1234 | 32 000.00 SEK  | 8 100.00 SEK |
 
 # Derivation
 
 FK011 = lönespecifikationens bruttolön (32 000.00 SEK); FK001 =
 Payslip-fältet `tax_withheld` (8 100.00 SEK); FK487 =
 `employer_contributions` (10 240.00 SEK) — samtliga hämtade ur
-[payslips/2026/anna-svensson-2026-06](/payslips/2026/anna-svensson-2026-06.md).
+[payslips/2026/anna-svensson-2026-06](../payslips/2026/anna-svensson-2026-06.md).
 Huvuduppgiftens FK497 (8 100.00 SEK) stäms av mot personalskatten och
 FK487 mot de sociala avgifterna i
-[verifications/2026/000201](/verifications/2026/000201.md).
+[verifications/2026/000201](../verifications/2026/000201.md).
 
 # Citations
 
@@ -2357,7 +2363,7 @@ timestamp: 2026-04-10T14:30:00Z
 Momsdeklaration för Company AB (org.nr 559999-9991, momsreg.nr
 SE559999999101) avseende redovisningsperioden februari 2026. Härledd ur
 periodens verifikationer via kontoplanens fältmappning
-([chart-of-accounts](/chart-of-accounts.md), §4.10) och lämnad till
+([chart-of-accounts](../chart-of-accounts.md), §4.10) och lämnad till
 Skatteverket 2026-04-10.
 
 # Period
@@ -2387,7 +2393,7 @@ denna period.
 # Derivation
 
 Fälten är summerade per konto och upprullade via kontoplanens *VAT
-Declaration Field*-mappning ([chart-of-accounts](/chart-of-accounts.md)):
+Declaration Field*-mappning ([chart-of-accounts](../chart-of-accounts.md)):
 
 | Konto  | Kontonamn                                    | Fält | Saldo februari |
 | ------ | -------------------------------------------- | ---- | --------------: |
@@ -2405,7 +2411,7 @@ Momskontona tömdes per 2026-02-28, innan mars påbörjades. Utgående moms
 [2611] 30 000 kr och [2614] 2 000 kr debiterades, ingående moms [2640]
 21 500 kr krediterades, och mellanskillnaden 10 500 kr bokfördes som
 momsskuld på [2650] i väntan på betalning — se
-[verifications/2026/000144](/verifications/2026/000144.md). Efter
+[verifications/2026/000144](../verifications/2026/000144.md). Efter
 omföringen är 2611, 2614 och 2640 nollställda i balansrapporten för
 perioden.
 
@@ -2589,10 +2595,10 @@ timestamp: 2026-12-31T16:00:00Z
 
 Company AB betalade 2026-07-01 en företagsförsäkring på 24 000 kr
 avseende 2026-07-01–2027-06-30 — se
-[supplier-invoices/2026/FS-4471](/supplier-invoices/2026/FS-4471.md).
+[supplier-invoices/2026/FS-4471](../../supplier-invoices/2026/FS-4471.md).
 Halva premien, 12 000 kr, avser räkenskapsåret 2027 och bokades vid
 bokslutet 2026-12-31 om till förutbetald kostnad på konto 1730 genom
-[verifications/2026/000512](/verifications/2026/000512.md). Beloppet
+[verifications/2026/000512](../../verifications/2026/000512.md). Beloppet
 löstes upp linjärt med 2 000 kr per månad under första halvåret 2027.
 
 # Schedule
@@ -2665,18 +2671,19 @@ producers MUST NOT place concept documents under `archive/`. A bundle
 remains OKF-conformant either way: OKF §9 constrains `.md` files only.
 
 **Referencing an archived file.** Concepts point into the arkiv with a
-bundle-relative path (OKF §5.1) — `/archive/kvitton/2026/…pdf` — both
-in `resource` and in ordinary markdown links in the body. This is the
-recommended form for the same reason OKF gives: it survives the bundle
-being cloned, zipped, or moved, which a `file:///` URI into the
-producer's own filesystem does not. A concept MAY carry an external URI
+document-relative path (OKF §5.2, §2) — `../../archive/kvitton/2026/…pdf`
+from `expenses/2026/x.md` — both in `resource` and in ordinary markdown
+links in the body. It is the only form that resolves in every tool a
+bundle is opened with, and it survives the bundle being cloned, zipped,
+or moved, which a `file:///` URI into the producer's own filesystem
+does not. A concept MAY carry an external URI
 instead when the original is held in a system outside the bundle, but
 the bundle then no longer carries its own räkenskapsinformation.
 
 **When the underlag is required.** Where this profile promotes
 `resource` from OKF's Recommended to **Required** — today `Expense`
 (§4.11.1), whose kvitto is what distinguishes an utlägg from taxable
-lön — the value MUST be a bundle-relative path under `archive/`
+lön — the value MUST be a document-relative path under `archive/`
 resolving to a file that is present in the bundle. An external URI does
 not satisfy the requirement: the rule exists to establish that the
 kvitto is preserved, not that it was seen once.
@@ -2759,7 +2766,7 @@ conformance (OKF §9) **and**, additionally:
   Swedish VAT, `reimbursement_date` whenever `reimbursement_status` is
   `paid`, and `currency`/`exchange_rate` whenever the utlägg was paid
   in a foreign currency (§4.11.1); and its `resource` is a
-  bundle-relative path under `archive/` resolving to a file present in
+  document-relative path under `archive/` resolving to a file present in
   the bundle (§5).
 - every concept with `type: Employer Tax Declaration` has all fields
   listed as "Required" in §4.12.1, plus `submitted_date` whenever
@@ -2781,11 +2788,13 @@ conformance (OKF §9) **and**, additionally:
   fall within `period_start`–`period_end`, with a `Verification` on every
   row whenever `status` is `released`.
 - every markdown link, `resource`, and `supporting_documents` path
-  whose target lies inside the bundle begins with `/` and is resolved
-  from the bundle root, and every `<Concept ID>` field holds a
-  root-relative Concept ID without `.md` or a leading `/` (§2);
+  whose target lies inside the bundle is a document-relative path
+  resolved from the referencing file's directory, never a
+  bundle-absolute path beginning with `/`, and every `<Concept ID>`
+  field holds a root-relative Concept ID without `.md` or a leading
+  `/` (§2);
 - no concept document (`.md`) is placed under `archive/`, and every
-  bundle-relative `resource` or `supporting_documents` path pointing
+  document-relative `resource` or `supporting_documents` path pointing
   into `archive/` resolves to a file present in the bundle (§5).
 
 As with OKF itself (OKF §9), consumers MUST NOT reject a
